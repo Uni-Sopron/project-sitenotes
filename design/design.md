@@ -1,7 +1,7 @@
 # Concept Design 
 
 ## All Notes:
-![All_Notes](all_notes.png)
+![all_notes_highlights](all_notes_highlights.png) ![all_notes_note](all_notes_note.png) ![all_notes_picture](all_notes_picture.png)
 - ez egy külön álló oldal 
 - három különálló részből fog állni:
     - jegyzetek
@@ -35,6 +35,7 @@
         - jegyzet színezése(alap 5 szín, rgb paletta)
         - feltöltés (md, txt) felül írja az egész jegyzetet
         - letöltés (md, txt)
+        - előnézet/szerkesztőnézet
         - elrejtés
         - kuka (törlés)
         - ikonnávarázsóló X (ha üres akkor törli, ha van venne valami akkor lekicsinyíti)
@@ -44,6 +45,28 @@
         - dölt betű, aláhúzás, félkövér, szinek, betűtípus, lista stb..
         - kép feltöltés
         - rajzolás 
+
+
+## Popup
+![popup1](popup1.png)
+![popup2](popup2.png)
+- elemei:
+    - Add Note: új jegyzet létrehozása
+    - Hide Notes / Show Notes :  megjelenit/ elrejt minden jegyzetet az oldalon
+    - Iconizer/ Undo: lekicsinyit minden jegyzetet icon méretűre/ felnagyit minden jegyzetet normális méretre
+    - All Notes: átvisz arra az oldalra ahol megjeleniti az összes jegyzetet
+    -Hide Tools/ Tools: a rajzolo eszeközök elrejtése és megjelenítése
+
+
+## Toolbar
+![toolbar](toolbar.png)
+- Oldal jobb felső sarkában megjelenő eszközbár.
+- elemei:
+    - 🔄️: elforgatja az eszközbárt
+    - ✏️: lehet rajzolni az oldalra
+    - kiemelő: Az oldalon lévő szöveget lehet ezzel kiemelni
+    - radír: Törölni lehet a kiemeléseket és a rajzokat.
+
 
 
     
