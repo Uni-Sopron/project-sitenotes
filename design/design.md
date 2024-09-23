@@ -3,6 +3,7 @@
 ## All Notes:
 ![all_notes_highlights](all_notes_highlights.png) ![all_notes_note](all_notes_note.png) ![all_notes_picture](all_notes_picture.png)
 - ez egy külön álló oldal 
+- a felső sorba egy kereső van, ami a jegyzetekben, illetve a kiemelések között keres 
 - három különálló részből fog állni:
     - jegyzetek
         - id, cím(ez egy link ami a jegyzethez visz vagy csak ahhoz az oldalhoz), módosítás dátuma
@@ -55,18 +56,20 @@
     - Hide Notes / Show Notes :  megjelenit/ elrejt minden jegyzetet az oldalon
     - Iconizer/ Undo: lekicsinyit minden jegyzetet icon méretűre/ felnagyit minden jegyzetet normális méretre
     - All Notes: átvisz arra az oldalra ahol megjeleniti az összes jegyzetet
-    -Hide Tools/ Tools: a rajzolo eszeközök elrejtése és megjelenítése
+    - Hide Tools/ Tools: a rajzolo eszeközök elrejtése és megjelenítése
 
 
 ## Toolbar
 ![toolbar](toolbar.png)
 - Oldal jobb felső sarkában megjelenő eszközbár.
+- ha sikerül megoldani mozdithatóra akkor mozditható ha nem akkor nem
 - elemei:
     - 🔄️: elforgatja az eszközbárt
     - ✏️: lehet rajzolni az oldalra
     - kiemelő: Az oldalon lévő szöveget lehet ezzel kiemelni
     - radír: Törölni lehet a kiemeléseket és a rajzokat.
-
+    - 3 alap szín (megjegyzi hogy melyiket használta legutoljára a ceruzához és melyiket a kiemeléshez)
+    - Vastagság állitása opcionális:)
 
 
     
