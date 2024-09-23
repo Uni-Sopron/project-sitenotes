@@ -11,19 +11,19 @@
         - figyelmeztetés: Ha elveszhet a jegyzet(oldal megszünése stb.....)
             - jegyzet elmentése (md fájl), vagy az aktuális oldalon a jegyzet módosítása
         - letöltés: md fájl formátumban
-        - pl: "4. <u>Bevásárlólista</u>  1813.13.47. 58:13 ⬇️⚠️🚮"
+            > "4. <u>Bevásárlólista</u>  1813.13.47. 58:13 ⬇️⚠️🚮"
     - Kiemelések
         - id, kiemelt szöveg egy része (ez egy link, ami a kiemeléshez visz, vagy csak ahhoz az oldalhoz), módosítás dátuma
         - törlés: törli az aktuális az elemet (+ megerősítő ablak)
         - figyelmeztetés: Ha elveszhet a kiemelés(oldal megszünése stb.....)
             - kiemelés elmentése (md fájl), vagy az aktuális oldalon a kiemelés módosítása
         - letöltés: md fájl formátumban
-        - pl: "15. <u>A levelibékák szaporodása....</u>  1813.13.47. 58:13 ⬇️⚠️🚮"
+            > "15. <u>A levelibékák szaporodása....</u>  1813.13.47. 58:13 ⬇️⚠️🚮"
     - Rajzok, képek
         - id, oldal link (ahhoz az oldalhoz), módosítás dátuma
         - törlés: törli az aktuális az elemet (+ megerősítő ablak)
         - figyelmeztetés: Ha elveszhet a rajz (oldal megszünése stb.....)(oldd meg!!!)
-        - pl: "42. <u>https://hu.wikipedia.org/wiki/Z%C3%B6ld_levelib%C3%A9ka</u>  2000.10.15. 12:11 ⬇️⚠️🚮"
+            > "42. <u>https://hu.wikipedia.org/wiki/Z%C3%B6ld_levelib%C3%A9ka</u>  2000.10.15. 12:11 ⬇️⚠️🚮"
 
 
 ## Note:
@@ -62,7 +62,7 @@
 
 ## Toolbar
 ![toolbar](toolbar.png)
-- Oldal jobb felső sarkában megjelenő eszközbár.
+- Oldal jobb felső sarkában megjelenő eszközkészlet.
 - Ha sikerül megoldani mozdíthatóra, akkor mozdítható, ha nem akkor nem
 - Elemei:
     - 🔄️: elforgatja az eszközbárt
