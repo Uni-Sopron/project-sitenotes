@@ -1,13 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  /*const [count, setCount] = useState(0)*/
 
   return (
+  <>
+    <table className='buttons'>
+      <tr>
+        <td>
+          <button className='add-note'></button>
+        </td>
+        <td>
+          <button className='notes'></button>
+        </td>
+        <td>
+          <button className='iconizer'></button>
+        </td>
+        <td>
+          <button className='all-notes'></button>
+        </td>
+        <td>
+          <button className='tools'></button>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <p>Add Notes</p>
+        </td>
+        <td>
+          <p>Show Notes</p>
+        </td>
+        <td>
+          <p>Iconizer</p>
+        </td>
+        <td>
+          <p>All Notes</p>
+        </td>
+        <td>
+          <p>Tools</p>
+        </td>
+      </tr>
+    </table>
+  </>
+  )
+  /*(
     <>
+    
       <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -30,6 +68,7 @@ function App() {
       </p>
     </>
   )
+  */
 }
 
 export default App
