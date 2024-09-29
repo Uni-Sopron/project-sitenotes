@@ -1,7 +1,7 @@
 # Concept Design 
 
 ## All Notes:
-![all_notes_highlights](all_notes_highlights.png) ![all_notes_note](all_notes_note.png) ![all_notes_picture](all_notes_picture.png)
+![all_notes_highlights](all_notes_highlights.png) ![all_notes_note](all_notes_note.png) ![all_notes_picture](all_notes_picture.png),![all_notes_drawing](all_notes_drawing.png)
 - Egy különálló oldal 
 - A felső sorba egy kereső van, ami a jegyzetekben, illetve a kiemelések között keres 
 - Négy csoportot különböztetünk meg:
