@@ -1,15 +1,21 @@
 {
     "manifest_version": 3,
     "name": "SiteNotes",
-    "version": "0.0.1",
+    "version": "0.0.4",
     "action": {
       "default_popup": "index.html",
       "default_icon": "icons/placeholder.png"
     },
-    "permissions": ["storage", "activeTab", "scripting"],
+    "permissions": ["storage", "activeTab", "scripting", "tabs"],
     "host_permissions": [
       "http://*/*",
       "https://*/*"
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["manage-notes.html"],
+        "matches": ["<all_urls>"]
+      }
     ]
   }
   

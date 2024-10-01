@@ -15,6 +15,10 @@ function App() {
     /* ide kód (pl oldal megjelenítése másik scriptnél), lehet nem async */
   }
 
+  function openManageNotesPage() {
+    window.open('manage-notes.html', '_blank'); // Opens the page in a new tab in any browser
+  }
+
   return (
   <>
     <table className='buttons'>
@@ -29,7 +33,7 @@ function App() {
           <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer"></img></button>
         </td>
         <td>
-          <button><img src="/popup-icons/list-solid.svg" alt="Tools"></img></button>
+          <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes"/></button>
         </td>
         <td>
           <button onClick={showTools}><img src={Tools ? "/popup-icons/message-solid.svg": "/popup-icons/pen-solid.svg"} alt={Tools ? "Hide Tools": "Show Tools"}/** Nincs itt se másik kép (lehet rossz a kép jelenleg) */></img></button>
