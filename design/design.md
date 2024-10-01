@@ -86,5 +86,6 @@
 
 
 ## Figyelmeztetés
- kép helye
+![alertbox](alertbox.png)
+![alertbox2](alertbox2.png)
 - Akkor jelenik meg, mikor a tartalom feltehetően el fog veszni
