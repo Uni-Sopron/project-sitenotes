@@ -20,37 +20,7 @@ p{
   font-style: bold;
 }
 
-.add-note {
-  background-image: url('./../public/popup-icons/note-sticky-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-}
-
-.notes {
-  background-image: url('./../public/popup-icons/message-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-}
-
-.iconizer {
-  background-image: url('./../public/popup-icons/compress-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-}
-
-.all-notes {
-  background-image: url('./../public/popup-icons/list-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
-}
-
-.tools {
-  background-image: url('./../public/popup-icons/pen-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+img {
+  width: 100%;
+  height: 100%;
 }
