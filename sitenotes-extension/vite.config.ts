@@ -5,16 +5,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: 'dist', // Output directory for the extension
+    outDir: 'dist',
     rollupOptions: {
       input: {
-        main: 'index.html', // Path to your main HTML file
-        manageNotes: 'src/manage-notes.ts', // Your main TypeScript file
+        main: 'index.html',
+        manageNotes: 'src/manage-notes.ts',
       },
       output: {
-        entryFileNames: 'assets/[name].js', // Define how entry files are named
-        chunkFileNames: 'assets/[name].js', // Define how chunk files are named
-        assetFileNames: 'assets/[name].[ext]', // Define how asset files are named
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name].[ext]',
       },
     },
   },

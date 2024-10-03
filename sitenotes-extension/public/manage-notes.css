@@ -1,4 +1,3 @@
-/* Make sure the layout is flexible for different screens */
 * {
     margin: 0;
     padding: 0;
@@ -52,7 +51,7 @@ body {
     margin-left: 220px;
     flex-grow: 1;
     padding: 20px;
-    width: calc(100% - 220px); /* Remaining space after the sidebar */
+    width: calc(100% - 220px);
 }
 
 .section {
@@ -60,73 +59,24 @@ body {
     padding: 20px;
     background-color: #3e3e3e;
     border-radius: 10px;
-    min-height: calc(100vh - 60px); /* Adjust based on footer height */
+    min-height: calc(100vh - 60px);
     box-sizing: border-box;
 }
 
-/* Footer remains fixed at the bottom */
 #footer {
     background-color: #3e3e3e;
     color: #e0e0e0;
     text-align: center;
     padding: 10px;
-    position: absolute; /* Use absolute positioning to ensure it fills space */
+    position: absolute;
     bottom: 0;
     left: 0;
-    width: 100vw; /* Ensure it takes up the full width of the viewport */
-}
-
-@media (max-width: 768px) {
-    /* Adjust sidebar width and content layout for smaller screens */
-    .sidebar {
-        width: 150px;
-    }
-
-    .main-content {
-        margin-left: 160px;
-        width: calc(100% - 160px);
-    }
-
-    #footer {
-        left: 0;
-        width: 100vw; /* Keep the full width on smaller screens too */
-    }
-
-    #sidebar h2 {
-        font-size: 25px;
-    }
-
-    #sidebar a {
-        font-size: 16px;
-        padding: 10px 0;
-        margin: 10px 0;
-    }
+    width: 100vw;
 }
 
 @media (max-width: 480px) {
-    /* For mobile, ensure sidebar is even narrower */
-    .sidebar {
-        width: 100px;
-    }
-
     .main-content {
         margin-left: 110px;
         width: calc(100% - 110px);
     }
-
-    #footer {
-        left: 0;
-        width: 100vw; /* Keep the full width on smaller screens too */
-    }
-
-    #sidebar h2 {
-        font-size: 15px;
-    }
-
-    #sidebar a {
-        font-size: 14px;
-        padding: 10px 0;
-        margin: 10px 0;
-    }
-
 }
