@@ -60,6 +60,8 @@ body {
     padding: 20px;
     background-color: #3e3e3e;
     border-radius: 10px;
+    min-height: calc(100vh - 60px); /* Adjust based on footer height */
+    box-sizing: border-box;
 }
 
 /* Footer remains fixed at the bottom */

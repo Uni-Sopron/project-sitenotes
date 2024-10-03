@@ -10,6 +10,9 @@ const summarySection = document.getElementById('summary');
 const settingsSection = document.getElementById('settings');
 const syncSection = document.getElementById('sync');
 
+// Variable to keep track of the currently visible section
+let currentSection: HTMLElement | null = null;
+
 // Function to hide all sections
 function hideAllSections(): void {
     if (summarySection) summarySection.style.display = 'none';
@@ -17,27 +20,40 @@ function hideAllSections(): void {
     if (syncSection) syncSection.style.display = 'none';
 }
 
+// Function to handle section display logic
+function showSection(section: HTMLElement | null) {
+    if (currentSection && currentSection === section) {
+        // If the same section is clicked again, close it
+        hideAllSections();
+        currentSection = null; // Reset current section
+    } else {
+        // Hide all sections first
+        hideAllSections();
+        if (section) {
+            section.style.display = 'block'; // Show the new section
+            currentSection = section; // Update current section
+        }
+    }
+}
+
 // Show the corresponding section on button click
 if (summaryButton) {
     summaryButton.addEventListener('click', () => {
         console.log("Summary button clicked");
-        hideAllSections();
-        if (summarySection) summarySection.style.display = 'block';
+        showSection(summarySection);
     });
 }
 
 if (settingsButton) {
     settingsButton.addEventListener('click', () => {
         console.log("Settings button clicked");
-        hideAllSections();
-        if (settingsSection) settingsSection.style.display = 'block';
+        showSection(settingsSection);
     });
 }
 
 if (syncButton) {
     syncButton.addEventListener('click', () => {
         console.log("Sync button clicked");
-        hideAllSections();
-        if (syncSection) syncSection.style.display = 'block';
+        showSection(syncSection);
     });
 }
