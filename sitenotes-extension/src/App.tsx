@@ -1,26 +1,42 @@
+import { useState } from 'react'
 import './App.css'
 
 function App() {
-  /*const [count, setCount] = useState(0)*/
+  const [Notes, setNotes] = useState(false); /* ha true akkor megjelenítettek azaz áthúzott, ha false akkor nem */
+  const [Tools, setTools] = useState(false); /* ha false, akkor megjeleníthető, ha true akkor teljesen eltűnik */
+
+   async function showNotes(){
+    Notes ? setNotes(false) : setNotes(true);
+    /* ide kód (pl oldal megjelenítése másik scriptnél), lehet nem async */
+  }
+
+  async function showTools(){
+    Tools ? setTools(false) : setTools(true);
+    /* ide kód (pl oldal megjelenítése másik scriptnél), lehet nem async */
+  }
+
+  function openManageNotesPage() {
+    window.open('manage-notes.html', '_blank'); // Opens the page in a new tab in any browser
+  }
 
   return (
   <>
     <table className='buttons'>
       <tr>
         <td>
-          <button className='add-note'></button>
+          <button><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note"></img></button>
         </td>
         <td>
-          <button className='notes'></button>
+          <button onClick={showNotes}><img src={Notes ? "/popup-icons/pen-solid.svg" : "/popup-icons/message-solid.svg"} alt={Notes ? "Hide Notes" : "Show Notes"}/** jelenleg nincs hamis kép(azaz eltakaró) */></img></button>
         </td>
         <td>
-          <button className='iconizer'></button>
+          <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer"></img></button>
         </td>
         <td>
-          <button className='all-notes'></button>
+          <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes"/></button>
         </td>
         <td>
-          <button className='tools'></button>
+          <button onClick={showTools}><img src={Tools ? "/popup-icons/message-solid.svg": "/popup-icons/pen-solid.svg"} alt={Tools ? "Hide Tools": "Show Tools"}/** Nincs itt se másik kép (lehet rossz a kép jelenleg) */></img></button>
         </td>
       </tr>
       <tr>
@@ -28,7 +44,7 @@ function App() {
           <p>Add Notes</p>
         </td>
         <td>
-          <p>Show Notes</p>
+          <p>{Notes ? "Hide Notes": "Show Notes"}</p>
         </td>
         <td>
           <p>Iconizer</p>
@@ -37,38 +53,12 @@ function App() {
           <p>All Notes</p>
         </td>
         <td>
-          <p>Tools</p>
+          <p>{Tools ? "Show Tools" : "Hide Tools"}</p>
         </td>
       </tr>
     </table>
   </>
   )
-  /*(
-    <>
-    
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-  */
 }
 
 export default App
