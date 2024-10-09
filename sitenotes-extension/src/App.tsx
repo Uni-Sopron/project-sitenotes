@@ -3,7 +3,7 @@ import './App.css';
 
 const App: React.FC = () => {
   const [notesVisible, setNotesVisible] = useState<boolean>(false);
-  const [toolsVisible, setToolsVisible] = useState<boolean>(true); // Start with tools visible
+  const [toolsVisible, setToolsVisible] = useState<boolean>(true);
 
   const showNotes = () => {
     setNotesVisible((prev) => !prev);
@@ -27,7 +27,8 @@ const App: React.FC = () => {
   const openManageNotesPage = () => {
     window.open('manage-notes.html', '_blank');
   };
-
+  
+  //took out toolbar from here as you can see
   return (
     <div className="popup-content">
       <table className='buttons'>

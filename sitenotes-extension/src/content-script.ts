@@ -3,8 +3,6 @@ let isVertical = false; // State to toggle between vertical and horizontal layou
 
 // Function to create and show the toolbar
 const createToolbar = () => {
-  // Create a shadow host
-  // Create a shadow host
   const shadowHost = document.createElement('div');
   shadowHost.id = 'toolbar-shadow-host';
   document.body.appendChild(shadowHost);
@@ -15,13 +13,12 @@ const createToolbar = () => {
   // Create a link element for the CSS file
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = chrome.runtime.getURL('toolbar.css'); // Reference your CSS file
+  link.href = chrome.runtime.getURL('toolbar.css');
 
   // Append the link to the shadow root
   shadowRoot.appendChild(link);
 
-  // Create the toolbar within the shadow DOM
-  // Create the toolbar within the shadow DOM
+  // this is a piece of shit
   toolbar = document.createElement('div');
   toolbar.id = 'myToolbar';
   toolbar.className = isVertical ? 'rounded-rectangle vertical' : 'rounded-rectangle horizontal'; // Apply styles based on orientation
@@ -30,18 +27,17 @@ const createToolbar = () => {
   toolbar.style.left = '100px';
   toolbar.style.zIndex = '9999';
   toolbar.style.display = 'flex';
-  toolbar.style.flexDirection = isVertical ? 'column' : 'row'; // Vertical or horizontal layout
-  toolbar.style.flexWrap = 'nowrap';  // No wrapping, all icons in a line for vertical
-  toolbar.style.justifyContent = 'center';  // Center the icons inside the toolbar
-  toolbar.style.alignItems = 'center';  // Align the icons properly inside
-  toolbar.style.padding = '10px';  // Padding for toolbar content
-  toolbar.style.gap = '10px'; // Consistent spacing between icons
+  toolbar.style.flexDirection = isVertical ? 'column' : 'row'; 
+  toolbar.style.flexWrap = 'nowrap';
+  toolbar.style.justifyContent = 'center';
+  toolbar.style.alignItems = 'center';
+  toolbar.style.padding = '10px';
+  toolbar.style.gap = '10px';
   toolbar.style.border = '1px solid black';
   toolbar.style.borderRadius = '15px';
   toolbar.style.backgroundColor = 'white';
 
-  // No need to manually set width or height, as flex will handle it
-
+  // No need to manually set width or height, as flex will handle it (yeah sure ni...)
 
   // Function to handle drag movement
   let isDragging = false;
@@ -73,8 +69,8 @@ const createToolbar = () => {
     toolbar!.style.height = isVertical ? '200px' : '50px';
   };
 
-  // Add toolbar buttons (with icons)
-  // Add toolbar buttons (with icons)
+  
+  // Add toolbar buttons (with icons) -> this took like 2 hours btw (I'm not proud of it)
   const buttonsConfig = [
       { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: () => console.log('Upload clicked') },
       { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => console.log('Pencil clicked') },
@@ -101,17 +97,16 @@ const createToolbar = () => {
       toolbar!.appendChild(button); // Append button to toolbar
   });
   
-  // Dynamically set width and height
-  const iconSize = 50; // Each icon is roughly 50px
+  // These also suck do something else instead please
+  const iconSize = 50;
   const numberOfIcons = buttonsConfig.length;
   if (isVertical) {
-    toolbar.style.width = `${iconSize + 20}px`; // Slightly larger than icon size to account for padding
-    toolbar.style.height = `${numberOfIcons * (iconSize + 20)}px`; // Height based on number of icons
+    toolbar.style.width = `${iconSize + 20}px`; 
+    toolbar.style.height = `${numberOfIcons * (iconSize + 20)}px`;
   } else {
-    toolbar.style.width = `${numberOfIcons * (iconSize + 20)}px`; // Width based on number of icons
-    toolbar.style.height = `${iconSize + 20}px`; // Height slightly larger than icon size
+    toolbar.style.width = `${numberOfIcons * (iconSize + 20)}px`;
+    toolbar.style.height = `${iconSize + 20}px`;
   }
-  
 
   // Append the toolbar to the shadow root
   shadowRoot.appendChild(toolbar);
