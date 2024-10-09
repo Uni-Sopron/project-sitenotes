@@ -13,9 +13,16 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["manage-notes.html"],
+        "resources": ["manage-notes.html", "assets/contentScript.js",
+        "toolbar-icons/*", "toolbar.css" ],
         "matches": ["<all_urls>"]
       }
+    ],
+    "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["assets/contentScript.js"]
+    }
     ]
   }
   
