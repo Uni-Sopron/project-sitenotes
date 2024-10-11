@@ -5,7 +5,7 @@ let isPencilModeActive = false; // Ceruza mód állapota
 let isDrawing = false;
 let isErasing = false;
 let isEraserModeActive = false; // Radír mód állapota
-
+let isHighlighterModeActive = false;
 
 let lastX = 0;
 let lastY = 0;
@@ -28,6 +28,41 @@ const setupCanvas = () => {
     document.body.appendChild(canvas);
     ctx = canvas.getContext('2d');
 }
+
+
+//Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik) (PROBLÉMA: ha az oldalra már rajzoltak az oldal használhatatlan lesz)
+const toggleHighlighterMode = () => {
+  if (isHighlighterModeActive) {
+    // Deactivate highlighter mode
+    document.body.style.cursor = 'default'; // Reset cursor
+    document.removeEventListener('mouseup', highlightSelection);
+    isHighlighterModeActive = false;
+  } else {
+    // Activate highlighter mode
+    document.body.style.cursor = 'text'; // Set cursor to indicate selection mode
+    document.addEventListener('mouseup', highlightSelection);
+    isHighlighterModeActive = true;
+  }
+};
+
+// Function to highlight selected text
+const highlightSelection = () => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return; // No selection, exit
+
+  const range = selection.getRangeAt(0);
+  const span = document.createElement('span');
+  span.style.backgroundColor = 'yellow'; // Set highlight color
+  span.appendChild(range.extractContents()); // Extract the selected content
+  range.insertNode(span); // Insert the highlighted content
+};
+
+
+
+
+
+
+
 
 const toggleEraserMode = () => {
 
@@ -55,13 +90,15 @@ const toggleEraserMode = () => {
     isPencilModeActive = false;
     canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
-  console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
+  console.log('isEraserModeActive: ', isEraserModeActive, 'isPencilModeActive: ', isPencilModeActive);
 };
 
 const activateEraserMode = () => {
   if (!canvas) {
     setupCanvas();
   }
+
+ 
   // Radír módhoz hozzárendeljük a szükséges eseményeket
   canvas!.addEventListener('mousedown', startErasing);
   canvas!.addEventListener('mousemove', erase);
@@ -78,7 +115,7 @@ const stopErasing = () => {
   isErasing = false;
 };
 
-const erase  = (e: MouseEvent) => {
+const erase = (e: MouseEvent) => {
   if (ctx && canvas && isErasing) {
     const x = e.clientX - canvas.offsetLeft;
     const y = e.clientY - canvas.offsetTop;
@@ -152,7 +189,7 @@ const togglePencilMode = () => {
     isEraserModeActive = false;
     canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
-  console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
+  console.log('isEraserModeActive: ', isEraserModeActive, 'isPencilModeActive: ', isPencilModeActive);
 };
 
 const startDrawing = (e: MouseEvent) => {
@@ -307,6 +344,8 @@ const createToolbar = () => {
 
 
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' }, // Pencil (Updated to activate drawing)
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
+
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') }, // Color 1
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') }, // Color 2
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') }, // Color 3
@@ -316,11 +355,11 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload }, // Updated Upload button
 
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' }, // Pencil (Updated to activate drawing)// Pencil
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => console.log('Highlighter clicked') }, // Highlighter
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' }, // Highlighter
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') }, // Color 1
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') }, // Color 2
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') }, // Color 3
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button'}, // Radír gomb
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' }, // Radír gomb
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' }, // Move
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Toggle Layout
       ];
