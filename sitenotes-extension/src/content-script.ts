@@ -15,6 +15,20 @@ let ctx: CanvasRenderingContext2D | null = null;
 let eraserButton: HTMLImageElement | null = null;
 let pencilButton: HTMLImageElement | null = null;
 
+const setupCanvas = () => {
+    canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '9000';
+    canvas.style.backgroundColor = 'transparent'; // Átlátszó hátterű vászon
+    canvas.style.pointerEvents = 'auto';
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+}
+
 const toggleEraserMode = () => {
 
   if (isEraserModeActive) {
@@ -25,6 +39,7 @@ const toggleEraserMode = () => {
     if (eraserButton) {
       eraserButton.style.opacity = '1';
     }
+    canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
   } else {
     // Ha a radír mód inaktív, akkor aktiváljuk
     activateEraserMode();
@@ -38,28 +53,18 @@ const toggleEraserMode = () => {
     }
     isEraserModeActive = true;
     isPencilModeActive = false;
+    canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
   console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
 };
 
 const activateEraserMode = () => {
   if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = '1000';
-    document.body.appendChild(canvas);
-
-    ctx = canvas.getContext('2d');
+    setupCanvas();
   }
-
- 
   // Radír módhoz hozzárendeljük a szükséges eseményeket
   canvas!.addEventListener('mousedown', startErasing);
-  canvas.addEventListener('mousemove', erase);
+  canvas!.addEventListener('mousemove', erase);
   canvas!.addEventListener('mouseup', stopErasing);
   canvas!.addEventListener('mouseout', stopErasing);
 };
@@ -97,16 +102,7 @@ const removeEraserEventlisteners = () => {
 
 const activatePencilMode = () => {
   if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = '1000';
-    document.body.appendChild(canvas);
-
-    ctx = canvas.getContext('2d');
+    setupCanvas();
     if (ctx) {
       ctx.strokeStyle = 'black';
       ctx.lineJoin = 'round';
@@ -140,6 +136,7 @@ const togglePencilMode = () => {
       pencilButton.style.opacity = '1';
     }
     isPencilModeActive = false;
+    canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
   } else {
     // Ha a ceruza mód inaktív, akkor aktiváljuk
     activatePencilMode();
@@ -153,6 +150,7 @@ const togglePencilMode = () => {
     canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
     isPencilModeActive = true;
     isEraserModeActive = false;
+    canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
   console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
 };
@@ -183,7 +181,7 @@ const createToolbar = () => {
   // Append the link to the shadow root
   shadowRoot.appendChild(link);
 
-  toolbar = document.createElement('div');
+  toolbar = document.createElement('div');  
   toolbar.id = 'myToolbar';
   toolbar.className = isVertical ? 'rounded-rectangle vertical' : 'rounded-rectangle horizontal';
   toolbar.style.position = 'fixed';
@@ -196,6 +194,8 @@ const createToolbar = () => {
   toolbar.style.border = '1px solid black';
   toolbar.style.borderRadius = '15px';
   toolbar.style.backgroundColor = 'white';
+  toolbar.style.zIndex = '9999'; // Always on top
+  toolbar.style.pointerEvents = 'auto'; // Allow interaction
 
   // Function to handle drag movement
   let isDragging = false;
