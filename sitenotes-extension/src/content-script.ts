@@ -3,7 +3,8 @@ let isVertical = false; // State to toggle between vertical and horizontal layou
 let isMovable = false; // State to check if toolbar is movable
 let isPencilModeActive = false; // Ceruza mód állapota
 let isDrawing = false;
-// let isEraserModeActive = false; // Radír mód állapota
+let isErasing = false;
+let isEraserModeActive = false; // Radír mód állapota
 
 
 let lastX = 0;
@@ -11,68 +12,89 @@ let lastY = 0;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 
-// const toggleEraserMode = () => {
-//   if (isEraserModeActive) {
-//     // Ha a radír mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a radírozást
-//     canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
-//     canvas!.removeEventListener('mousedown', startErasing);
-//     canvas!.removeEventListener('mousemove', erase);
-//     canvas!.removeEventListener('mouseup', stopErasing);
-//     canvas!.removeEventListener('mouseout', stopErasing);
-//     isEraserModeActive = false;
-//   } else {
-//     // Ha a radír mód inaktív, akkor aktiváljuk
-//     activateEraserMode();
-//     canvas!.style.cursor = 'crosshair'; // Radír kurzor
-//     isEraserModeActive = true;
-//   }
-// };
-// const activateEraserMode = () => {
-//   if (!canvas) {
-//     canvas = document.createElement('canvas');
-//     canvas.width = window.innerWidth;
-//     canvas.height = window.innerHeight;
-//     canvas.style.position = 'absolute';
-//     canvas.style.top = '0';
-//     canvas.style.left = '0';
-//     canvas.style.zIndex = '1000';
-//     document.body.appendChild(canvas);
+let eraserButton: HTMLImageElement | null = null;
+let pencilButton: HTMLImageElement | null = null;
 
-//     ctx = canvas.getContext('2d');
-//   }
+const toggleEraserMode = () => {
 
-//   // Radírozási stílus: fehér színnel "rajzolunk", ami olyan, mintha törölnénk
-//   if (ctx) {
-//     ctx.strokeStyle = 'white'; // A rajzolási szín fehér lesz, ami törlési hatást kelt
-//     ctx.lineJoin = 'round';
-//     ctx.lineCap = 'round';
-//     ctx.lineWidth = 20; // Az radír mérete (vastagság)
-//   }
+  if (isEraserModeActive) {
+    // Ha a radír mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a radírozást
+    canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
+    removeEraserEventlisteners();
+    isEraserModeActive = false;
+    if (eraserButton) {
+      eraserButton.style.opacity = '1';
+    }
+  } else {
+    // Ha a radír mód inaktív, akkor aktiváljuk
+    activateEraserMode();
+    removePencilEventlisteners();
+    canvas!.style.cursor = 'crosshair'; // Radír kurzor
+    if (eraserButton) {
+      eraserButton.style.opacity = '0.5';
+    }
+    if (pencilButton) {
+      pencilButton.style.opacity = '1';
+    }
+    isEraserModeActive = true;
+    isPencilModeActive = false;
+  }
+  console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
+};
 
-//   // Radír módhoz hozzárendeljük a szükséges eseményeket
-//   canvas!.addEventListener('mousedown', startErasing);
-//   canvas!.addEventListener('mousemove', erase);
-//   canvas!.addEventListener('mouseup', stopErasing);
-//   canvas!.addEventListener('mouseout', stopErasing);
-// };
+const activateEraserMode = () => {
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '1000';
+    document.body.appendChild(canvas);
 
-// const startErasing = (e: MouseEvent) => {
-//   isDrawing = true;
-//   [lastX, lastY] = [e.offsetX, e.offsetY];
-// };
+    ctx = canvas.getContext('2d');
+  }
 
-// const stopErasing = () => {
-//   isDrawing = false;
-// };
+ 
+  // Radír módhoz hozzárendeljük a szükséges eseményeket
+  canvas!.addEventListener('mousedown', startErasing);
+  canvas.addEventListener('mousemove', erase);
+  canvas!.addEventListener('mouseup', stopErasing);
+  canvas!.addEventListener('mouseout', stopErasing);
+};
 
-// const erase = (e: MouseEvent) => {
-//   if (!isDrawing || !ctx) return;
-//   ctx.beginPath();
-//   ctx.moveTo(lastX, lastY);
-//   ctx.lineTo(e.offsetX, e.offsetY);
-//   ctx.stroke();
-//   [lastX, lastY] = [e.offsetX, e.offsetY];
-// };
+const startErasing = (e: MouseEvent) => {
+  isErasing = true;
+  erase(e);
+};
+
+const stopErasing = () => {
+  isErasing = false;
+};
+
+const erase  = (e: MouseEvent) => {
+  if (ctx && canvas && isErasing) {
+    const x = e.clientX - canvas.offsetLeft;
+    const y = e.clientY - canvas.offsetTop;
+    const eraseSize = 20; // A radír mérete
+    ctx.clearRect(x - eraseSize / 2, y - eraseSize / 2, eraseSize, eraseSize); // A kurzor körüli terület törlése
+  }
+};
+
+const removePencilEventlisteners = () => {
+  canvas!.removeEventListener('mousedown', startDrawing);
+  canvas!.removeEventListener('mousemove', draw);
+  canvas!.removeEventListener('mouseup', stopDrawing);
+  canvas!.removeEventListener('mouseout', stopDrawing);
+}
+const removeEraserEventlisteners = () => {
+  canvas!.removeEventListener('mousedown', startErasing);
+  canvas!.removeEventListener('mousemove', erase);
+  canvas!.removeEventListener('mouseup', stopErasing);
+  canvas!.removeEventListener('mouseout', stopErasing);
+}
+
 const activatePencilMode = () => {
   if (!canvas) {
     canvas = document.createElement('canvas');
@@ -113,17 +135,26 @@ const togglePencilMode = () => {
   if (isPencilModeActive) {
     // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
     canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
-    canvas!.removeEventListener('mousedown', startDrawing);
-    canvas!.removeEventListener('mousemove', draw);
-    canvas!.removeEventListener('mouseup', stopDrawing);
-    canvas!.removeEventListener('mouseout', stopDrawing);
+    removePencilEventlisteners();
+    if (pencilButton) {
+      pencilButton.style.opacity = '1';
+    }
     isPencilModeActive = false;
   } else {
     // Ha a ceruza mód inaktív, akkor aktiváljuk
     activatePencilMode();
+    removeEraserEventlisteners();
+    if (pencilButton) {
+      pencilButton.style.opacity = '0.5';
+    }
+    if (eraserButton) {
+      eraserButton.style.opacity = '1';
+    }
     canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
     isPencilModeActive = true;
+    isEraserModeActive = false;
   }
+  console.log('isEraserModeActive: ',isEraserModeActive, 'isPencilModeActive: ',isPencilModeActive);
 };
 
 const startDrawing = (e: MouseEvent) => {
@@ -137,7 +168,7 @@ const stopDrawing = () => {
 
 // Function to create and show the toolbar
 const createToolbar = () => {
-  const shadowHost = document.createElement('div');
+  const shadowHost = document.createElement('div'); // Ez az example.com-on ott marad ilyen fehér sáv biszbasznak ami sztem nem igazan jó :c
   shadowHost.id = 'toolbar-shadow-host';
   document.body.appendChild(shadowHost);
 
@@ -275,21 +306,21 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload }, // Updated Upload button
 
 
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode }, // Pencil (Updated to activate drawing)
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' }, // Pencil (Updated to activate drawing)
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') }, // Color 1
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') }, // Color 2
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') }, // Color 3
-        // { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode }, // Radír gomb
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' }, // Radír gomb
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload }, // Updated Upload button
 
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode }, // Pencil (Updated to activate drawing)// Pencil
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' }, // Pencil (Updated to activate drawing)// Pencil
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => console.log('Highlighter clicked') }, // Highlighter
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') }, // Color 1
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') }, // Color 2
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') }, // Color 3
-        // { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode }, // Radír gomb
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button'}, // Radír gomb
         { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' }, // Move
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Toggle Layout
       ];
@@ -311,6 +342,10 @@ const createToolbar = () => {
 
   // Initial button configuration
   updateButtonsConfig();
+
+  // Initialize eraserButton after toolbar is created
+  eraserButton = toolbar.querySelector('.eraser-button img') as HTMLImageElement;
+  pencilButton = toolbar.querySelector('.pencil-button img') as HTMLImageElement;
 
   // Append the toolbar to the shadow root
   shadowRoot.appendChild(toolbar);
