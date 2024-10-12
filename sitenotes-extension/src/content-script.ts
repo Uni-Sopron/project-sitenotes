@@ -29,8 +29,6 @@ const setupCanvas = () => {
     ctx = canvas.getContext('2d');
 }
 
-  // TODO: Implement touch events
-
 const addPencilEventListeners = () => {
   canvas!.addEventListener('mousedown', startDrawing);
   canvas!.addEventListener('mousemove', draw);
