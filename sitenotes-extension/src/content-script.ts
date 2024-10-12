@@ -29,7 +29,34 @@ const setupCanvas = () => {
     ctx = canvas.getContext('2d');
 }
 
+  // TODO: Implement touch events
 
+const addPencilEventListeners = () => {
+  canvas!.addEventListener('mousedown', startDrawing);
+  canvas!.addEventListener('mousemove', draw);
+  canvas!.addEventListener('mouseup', stopDrawing);
+  canvas!.addEventListener('mouseout', stopDrawing);
+}
+const removePencilEventlisteners = () => {
+  canvas!.removeEventListener('mousedown', startDrawing);
+  canvas!.removeEventListener('mousemove', draw);
+  canvas!.removeEventListener('mouseup', stopDrawing);
+  canvas!.removeEventListener('mouseout', stopDrawing);
+}
+const addEraserEventListeners = () => {
+    canvas!.addEventListener('mousedown', startErasing);
+    canvas!.addEventListener('mousemove', erase);
+    canvas!.addEventListener('mouseup', stopErasing);
+    canvas!.addEventListener('mouseout', stopErasing);
+}
+const removeEraserEventlisteners = () => {
+  canvas!.removeEventListener('mousedown', startErasing);
+  canvas!.removeEventListener('mousemove', erase);
+  canvas!.removeEventListener('mouseup', stopErasing);
+  canvas!.removeEventListener('mouseout', stopErasing);
+}
+
+// HIGHLIGHTER FUNCTIONALITY
 //Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik) (PROBLÉMA: ha az oldalra már rajzoltak az oldal használhatatlan lesz)
 const toggleHighlighterMode = () => {
   if (isHighlighterModeActive) {
@@ -60,10 +87,7 @@ const highlightSelection = () => {
 
 
 
-
-
-
-
+// ERASER FUNCTIONALITY
 const toggleEraserMode = () => {
 
   if (isEraserModeActive) {
@@ -94,16 +118,8 @@ const toggleEraserMode = () => {
 };
 
 const activateEraserMode = () => {
-  if (!canvas) {
-    setupCanvas();
-  }
-
- 
-  // Radír módhoz hozzárendeljük a szükséges eseményeket
-  canvas!.addEventListener('mousedown', startErasing);
-  canvas!.addEventListener('mousemove', erase);
-  canvas!.addEventListener('mouseup', stopErasing);
-  canvas!.addEventListener('mouseout', stopErasing);
+  if (!canvas) {setupCanvas();}
+  addEraserEventListeners();
 };
 
 const startErasing = (e: MouseEvent) => {
@@ -124,19 +140,9 @@ const erase = (e: MouseEvent) => {
   }
 };
 
-const removePencilEventlisteners = () => {
-  canvas!.removeEventListener('mousedown', startDrawing);
-  canvas!.removeEventListener('mousemove', draw);
-  canvas!.removeEventListener('mouseup', stopDrawing);
-  canvas!.removeEventListener('mouseout', stopDrawing);
-}
-const removeEraserEventlisteners = () => {
-  canvas!.removeEventListener('mousedown', startErasing);
-  canvas!.removeEventListener('mousemove', erase);
-  canvas!.removeEventListener('mouseup', stopErasing);
-  canvas!.removeEventListener('mouseout', stopErasing);
-}
 
+
+// PENCIL FUNCTIONALITY
 const activatePencilMode = () => {
   if (!canvas) {
     setupCanvas();
@@ -147,11 +153,7 @@ const activatePencilMode = () => {
       ctx.lineWidth = 5;
     }
   }
-
-  canvas!.addEventListener('mousedown', startDrawing);
-  canvas!.addEventListener('mousemove', draw);
-  canvas!.addEventListener('mouseup', stopDrawing);
-  canvas!.addEventListener('mouseout', stopDrawing);
+  addPencilEventListeners();
 };
 
 const draw = (e: MouseEvent) => {
@@ -201,6 +203,10 @@ const stopDrawing = () => {
   isDrawing = false;
 };
 
+
+
+
+// TOOLBAR FUNCTIONALITY
 // Function to create and show the toolbar
 const createToolbar = () => {
   const shadowHost = document.createElement('div'); // Ez az example.com-on ott marad ilyen fehér sáv biszbasznak ami sztem nem igazan jó :c
