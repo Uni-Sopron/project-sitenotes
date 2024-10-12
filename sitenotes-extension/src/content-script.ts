@@ -185,7 +185,7 @@ const activatePencilMode = () => {
   if (!canvas) {
     setupCanvas();
     if (ctx) {
-      ctx.strokeStyle = 'black';
+      ctx.strokeStyle = '#1974D2';
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.lineWidth = 5;
