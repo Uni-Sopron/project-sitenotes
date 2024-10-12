@@ -134,7 +134,15 @@ const erase = (e: MouseEvent) => {
     const x = e.clientX - canvas.offsetLeft;
     const y = e.clientY - canvas.offsetTop;
     const eraseSize = 20; // A radír mérete
-    ctx.clearRect(x - eraseSize / 2, y - eraseSize / 2, eraseSize, eraseSize); // A kurzor körüli terület törlése
+    // A radírozás megkezdése
+        ctx.save(); // Elmentjük a jelenlegi állapotot
+        ctx.globalCompositeOperation = 'destination-out'; // Beállítjuk a törlés módját
+
+        ctx.beginPath();
+        ctx.arc(x, y, eraseSize / 2, 0, Math.PI * 2, false); // Egy kör rajzolása a megadott koordinátákon
+        ctx.fill(); // Kitöltjük a kört, ez törlésként működik
+
+        ctx.restore(); // Visszaállítjuk az eredeti állapotot
   }
 };
 
