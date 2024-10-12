@@ -17,8 +17,8 @@ let pencilButton: HTMLImageElement | null = null;
 
 const setupCanvas = () => {
     canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth; // TODO ha az oldal gorgetheto a canvas nem lesz eleg nagy
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = document.body.scrollHeight; // a canvas magassága megegyezik az oldal hosszával
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
