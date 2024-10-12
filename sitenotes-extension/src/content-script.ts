@@ -17,7 +17,7 @@ let pencilButton: HTMLImageElement | null = null;
 
 const setupCanvas = () => {
     canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
+    canvas.width = window.innerWidth; // TODO ha az oldal gorgetheto a canvas nem lesz eleg nagy
     canvas.height = window.innerHeight;
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
@@ -296,7 +296,6 @@ const createToolbar = () => {
   toolbar.style.position = 'fixed';
   toolbar.style.top = '100px';
   toolbar.style.left = '100px';
-  toolbar.style.zIndex = '9999';
   toolbar.style.display = 'flex';
   toolbar.style.padding = '10px';
   toolbar.style.gap = '10px';
