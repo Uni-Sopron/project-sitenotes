@@ -96,7 +96,7 @@ const toggleEraserMode = () => {
     removeEraserEventlisteners();
     isEraserModeActive = false;
     if (eraserButton) {
-      eraserButton.style.opacity = '1'; // TODO mikor elforgatjuk a toolbar-t, akkor a gombok erre már nem reagálnak!
+      eraserButton.style.opacity = '1';
     }
     canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
   } else {
@@ -389,14 +389,15 @@ const createToolbar = () => {
       button.onclick = onClick; // Set the click handler
       toolbar!.appendChild(button); // Append button to toolbar
     });
+      // Initialize eraserButton after toolbar is created
+      eraserButton = toolbar!.querySelector('.eraser-button img') as HTMLImageElement;
+      pencilButton = toolbar!.querySelector('.pencil-button img') as HTMLImageElement;
   };
 
   // Initial button configuration
   updateButtonsConfig();
 
-  // Initialize eraserButton after toolbar is created
-  eraserButton = toolbar.querySelector('.eraser-button img') as HTMLImageElement;
-  pencilButton = toolbar.querySelector('.pencil-button img') as HTMLImageElement;
+
 
   // Append the toolbar to the shadow root
   shadowRoot.appendChild(toolbar);
