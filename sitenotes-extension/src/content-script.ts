@@ -450,6 +450,7 @@ const createToolbar = () => {
       toolbar!.appendChild(button); // Append button to toolbar
     });
       // Initialize eraserButton after toolbar is created
+      // TODO - ha aktív és forgatod, akkor nem színezi jól az ikont
       eraserButton = toolbar!.querySelector('.eraser-button img') as HTMLImageElement;
       pencilButton = toolbar!.querySelector('.pencil-button img') as HTMLImageElement;
   };
