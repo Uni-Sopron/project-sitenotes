@@ -36,24 +36,46 @@ const addPencilEventListeners = () => {
   canvas!.addEventListener('mousemove', draw);
   canvas!.addEventListener('mouseup', stopDrawing);
   canvas!.addEventListener('mouseout', stopDrawing);
+
+  canvas!.addEventListener('touchstart', startDrawing);
+  canvas!.addEventListener('touchmove', draw);
+  canvas!.addEventListener('touchend', stopDrawing);
+  canvas!.addEventListener('touchcancel', stopDrawing);
 }
 const removePencilEventlisteners = () => {
   canvas!.removeEventListener('mousedown', startDrawing);
   canvas!.removeEventListener('mousemove', draw);
   canvas!.removeEventListener('mouseup', stopDrawing);
   canvas!.removeEventListener('mouseout', stopDrawing);
+
+  canvas!.removeEventListener('touchstart', startDrawing);
+  canvas!.removeEventListener('touchmove', draw);
+  canvas!.removeEventListener('touchend', stopDrawing);
+  canvas!.removeEventListener('touchcancel', stopDrawing);
+  
 }
 const addEraserEventListeners = () => {
     canvas!.addEventListener('mousedown', startErasing);
     canvas!.addEventListener('mousemove', erase);
     canvas!.addEventListener('mouseup', stopErasing);
     canvas!.addEventListener('mouseout', stopErasing);
+
+    canvas!.addEventListener('touchstart', startErasing);
+    canvas!.addEventListener('touchmove', erase);
+    canvas!.addEventListener('touchend', stopErasing);
+    canvas!.addEventListener('touchcancel', stopErasing);
 }
 const removeEraserEventlisteners = () => {
   canvas!.removeEventListener('mousedown', startErasing);
   canvas!.removeEventListener('mousemove', erase);
   canvas!.removeEventListener('mouseup', stopErasing);
   canvas!.removeEventListener('mouseout', stopErasing);
+
+  canvas!.removeEventListener('touchstart', startErasing);
+  canvas!.removeEventListener('touchmove', erase);
+  canvas!.removeEventListener('touchend', stopErasing);
+  canvas!.removeEventListener('touchcancel', stopErasing);
+
 }
 
 // HIGHLIGHTER FUNCTIONALITY
@@ -129,23 +151,35 @@ const stopErasing = () => {
   isErasing = false;
 };
 
-const erase = (e: MouseEvent) => {
+const erase = (e: MouseEvent | TouchEvent) => {
+  e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
   if (ctx && canvas && isErasing) {
-    const x = e.clientX - canvas.offsetLeft;
-    const y = e.clientY - canvas.offsetTop;
+    let x = 0;
+    let y = 0;
     const eraseSize = 20; // A radír mérete
+
+    if (e instanceof MouseEvent) {
+      // Egér esemény esetén
+      x = e.clientX - canvas.offsetLeft;
+      y = e.clientY - canvas.offsetTop;
+    } else if (e instanceof TouchEvent) {
+      // Érintés esemény esetén
+      const touch = e.touches[0] || e.changedTouches[0];
+      x = (touch?.clientX ?? 0) - canvas.offsetLeft;
+      y = (touch?.clientY ?? 0) - canvas.offsetTop;
+    }
+
     // A radírozás megkezdése
-        ctx.save(); // Elmentjük a jelenlegi állapotot
-        ctx.globalCompositeOperation = 'destination-out'; // Beállítjuk a törlés módját
+    ctx.save(); // Elmentjük a jelenlegi állapotot
+    ctx.globalCompositeOperation = 'destination-out'; // Beállítjuk a törlés módját
 
-        ctx.beginPath();
-        ctx.arc(x, y, eraseSize / 2, 0, Math.PI * 2, false); // Egy kör rajzolása a megadott koordinátákon
-        ctx.fill(); // Kitöltjük a kört, ez törlésként működik
+    ctx.beginPath();
+    ctx.arc(x, y, eraseSize / 2, 0, Math.PI * 2, false); // Egy kör rajzolása a megadott koordinátákon
+    ctx.fill(); // Kitöltjük a kört, ez törlésként működik
 
-        ctx.restore(); // Visszaállítjuk az eredeti állapotot
+    ctx.restore(); // Visszaállítjuk az eredeti állapotot
   }
 };
-
 
 
 // PENCIL FUNCTIONALITY
@@ -162,14 +196,51 @@ const activatePencilMode = () => {
   addPencilEventListeners();
 };
 
-const draw = (e: MouseEvent) => {
+const draw = (e: MouseEvent | TouchEvent) => {
+  e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
   if (!isDrawing || !ctx) return; // Ha nem rajzolunk, lépjünk ki
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY); // Kezdő pont
-  ctx.lineTo(e.offsetX, e.offsetY); // Célpont
-  ctx.stroke(); // Vonal kirajzolása
-  [lastX, lastY] = [e.offsetX, e.offsetY]; // Frissítjük az utolsó pozíciót
+
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // Egér esemény esetén
+      if (e instanceof MouseEvent) {
+          offsetX = e.offsetX;
+          offsetY = e.offsetY;
+      }
+        // Érintés esemény esetén
+      else if (e instanceof TouchEvent) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      offsetX = touch.clientX - canvas!.offsetLeft;
+      offsetY = touch.clientY - canvas!.offsetTop;
+  }
+      ctx.beginPath();             // Kezdünk egy új útvonalat
+      ctx.moveTo(lastX, lastY);     // Rajzolás a korábbi pozícióból
+      ctx.lineTo(offsetX, offsetY); // Rajzolás az új pozícióig
+      ctx.stroke();                 // Vonal megjelenítése
+      [lastX, lastY] = [offsetX, offsetY]; // Frissítjük az utolsó pozíciót
 };
+
+const startDrawing = (e: MouseEvent | TouchEvent) => {
+  isDrawing = true;
+
+  if (e instanceof MouseEvent) {
+    // Egér esemény esetén
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  } else if (e instanceof TouchEvent) {
+    // Érintés esemény esetén
+    const touch = e.touches[0] || e.changedTouches[0];
+    [lastX, lastY] = [
+      (touch?.clientX ?? 0) - canvas!.offsetLeft,
+      (touch?.clientY ?? 0) - canvas!.offsetTop
+    ];
+  }
+};
+
+const stopDrawing = () => {
+  isDrawing = false;
+};
+
 
 // Funkció a ceruza ikonhoz
 const togglePencilMode = () => {
@@ -197,17 +268,8 @@ const togglePencilMode = () => {
     isEraserModeActive = false;
     canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
-  console.log('isEraserModeActive: ', isEraserModeActive, 'isPencilModeActive: ', isPencilModeActive);
 };
 
-const startDrawing = (e: MouseEvent) => {
-  isDrawing = true;
-  [lastX, lastY] = [e.offsetX, e.offsetY];
-};
-
-const stopDrawing = () => {
-  isDrawing = false;
-};
 
 
 
