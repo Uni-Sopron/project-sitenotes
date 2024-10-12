@@ -57,7 +57,7 @@ const removeEraserEventlisteners = () => {
 }
 
 // HIGHLIGHTER FUNCTIONALITY
-//Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik) (PROBLÉMA: ha az oldalra már rajzoltak az oldal használhatatlan lesz)
+//Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik)
 const toggleHighlighterMode = () => {
   if (isHighlighterModeActive) {
     // Deactivate highlighter mode
@@ -92,18 +92,18 @@ const toggleEraserMode = () => {
 
   if (isEraserModeActive) {
     // Ha a radír mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a radírozást
-    canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
+    canvas!.style.cursor = 'default';
     removeEraserEventlisteners();
     isEraserModeActive = false;
     if (eraserButton) {
-      eraserButton.style.opacity = '1';
+      eraserButton.style.opacity = '1'; // TODO mikor elforgatjuk a toolbar-t, akkor a gombok erre már nem reagálnak!
     }
     canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
   } else {
     // Ha a radír mód inaktív, akkor aktiváljuk
     activateEraserMode();
     removePencilEventlisteners();
-    canvas!.style.cursor = 'crosshair'; // Radír kurzor
+    canvas!.style.cursor = 'crosshair';
     if (eraserButton) {
       eraserButton.style.opacity = '0.5';
     }
@@ -114,7 +114,6 @@ const toggleEraserMode = () => {
     isPencilModeActive = false;
     canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
-  console.log('isEraserModeActive: ', isEraserModeActive, 'isPencilModeActive: ', isPencilModeActive);
 };
 
 const activateEraserMode = () => {
@@ -122,9 +121,8 @@ const activateEraserMode = () => {
   addEraserEventListeners();
 };
 
-const startErasing = (e: MouseEvent) => {
+const startErasing = () => {
   isErasing = true;
-  erase(e);
 };
 
 const stopErasing = () => {
