@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: 'index.html',
         contentScript: 'src/content-script.ts',
+        contentScriptNote: 'src/content-script-note.ts',
       },
       output: {
         entryFileNames: 'assets/[name].js',
