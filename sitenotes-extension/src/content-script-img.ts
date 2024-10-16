@@ -1,0 +1,1 @@
+// ide kerül a képek beillesztése a weboldalra.

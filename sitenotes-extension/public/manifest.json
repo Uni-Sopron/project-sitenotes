@@ -13,15 +13,24 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["manage-notes.html", "assets/contentScript.js",
-        "toolbar-icons/*", "toolbar.css" ],
+        "resources": [
+          "manage-notes.html", 
+          "assets/contentScriptToolbar.js", 
+          "assets/contentScriptHighlighter.js", 
+          "assets/contentScriptDraw.js",
+          "assets/contentScriptIMG.js",
+          "toolbar-icons/*", 
+          "toolbar.css" ],
         "matches": ["<all_urls>"]
       }
     ],
     "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["assets/contentScript.js"]
+      "js": ["assets/contentScriptToolbar.js",
+             "assets/contentScriptHighlighter.js",
+             "assets/contentScriptDraw.js",
+             "assets/contentScriptIMG.js"]
     }
     ]
   }
