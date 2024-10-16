@@ -1,8 +1,8 @@
 // ide kerül a rajzoló kódja, ami rajzol a weboldalra.
 let isPencilModeActive = false; // Ceruza mód állapota
 let isDrawing = false;
-let isErasing = false;
 let isEraserModeActive = false; // Radír mód állapota
+let isErasing = false;
 
 let lastX = 0;
 let lastY = 0;
@@ -16,7 +16,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 const setupCanvas = () => {
     canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
-    canvas.height = document.body.scrollHeight; // a canvas magassága megegyezik az oldal hosszával
+    // A canvas magassága a hosszabb értékre lesz beállítva (oldal hossza vagy képernyőmagasság)
+    canvas.height = Math.max(window.innerHeight, document.body.scrollHeight);
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
@@ -84,21 +85,12 @@ const toggleEraserMode = () => {
       canvas!.style.cursor = 'default';
       removeEraserEventlisteners();
       isEraserModeActive = false;
-    //   if (eraserButton) {
-    //     eraserButton.style.opacity = '1';
-    //   }
       canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
     } else {
       // Ha a radír mód inaktív, akkor aktiváljuk
       activateEraserMode();
       removePencilEventlisteners();
       canvas!.style.cursor = 'crosshair';
-    //   if (eraserButton) {
-    //     eraserButton.style.opacity = '0.5';
-    //   }
-    //   if (pencilButton) {
-    //     pencilButton.style.opacity = '1';
-    //   }
       isEraserModeActive = true;
       isPencilModeActive = false;
       canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
@@ -109,15 +101,7 @@ const toggleEraserMode = () => {
     if (!canvas) {setupCanvas();}
     addEraserEventListeners();
   };
-  
-  const startErasing = () => {
-    isErasing = true;
-  };
-  
-  const stopErasing = () => {
-    isErasing = false;
-  };
-  
+
   const erase = (e: MouseEvent | TouchEvent) => {
     e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
     if (ctx && canvas && isErasing) {
@@ -148,12 +132,50 @@ const toggleEraserMode = () => {
     }
   };
   
+  const startErasing = () => {
+    isErasing = true;
+  };
+  
+  const stopErasing = () => {
+    isErasing = false;
+  };
+  
+
+  
   
   // PENCIL FUNCTIONALITY
+  const togglePencilMode = () => {
+    if (isPencilModeActive) {
+      // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
+      canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
+      removePencilEventlisteners();
+    //   if (pencilButton) {
+    //     pencilButton.style.opacity = '1';
+    //   }
+      isPencilModeActive = false;
+      canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
+    } else {
+      // Ha a ceruza mód inaktív, akkor aktiváljuk
+      activatePencilMode();
+      removeEraserEventlisteners();
+    //   if (pencilButton) {
+    //     pencilButton.style.opacity = '0.5';
+    //   }
+    //   if (eraserButton) {
+    //     eraserButton.style.opacity = '1';
+    //   }
+      canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
+      isPencilModeActive = true;
+      isEraserModeActive = false;
+      canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
+    }
+  };
+  
   const activatePencilMode = () => {
     if (!canvas) {
       setupCanvas();
       if (ctx) {
+        // Beállítjuk a rajzolás alapértelmezett tulajdonságait
         ctx.strokeStyle = '#1974D2';
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
@@ -210,33 +232,7 @@ const toggleEraserMode = () => {
   
   
   // Funkció a ceruza ikonhoz
-  const togglePencilMode = () => {
-    if (isPencilModeActive) {
-      // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
-      canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
-      removePencilEventlisteners();
-    //   if (pencilButton) {
-    //     pencilButton.style.opacity = '1';
-    //   }
-      isPencilModeActive = false;
-      canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
-    } else {
-      // Ha a ceruza mód inaktív, akkor aktiváljuk
-      activatePencilMode();
-      removeEraserEventlisteners();
-    //   if (pencilButton) {
-    //     pencilButton.style.opacity = '0.5';
-    //   }
-    //   if (eraserButton) {
-    //     eraserButton.style.opacity = '1';
-    //   }
-      canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
-      isPencilModeActive = true;
-      isEraserModeActive = false;
-      canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
-    }
-  };
-  
+
   export { togglePencilMode, toggleEraserMode };
   
   
