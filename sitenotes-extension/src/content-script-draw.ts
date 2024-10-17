@@ -9,9 +9,6 @@ let lastY = 0;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 
-// let eraserButton: HTMLImageElement | null = null;
-// let pencilButton: HTMLImageElement | null = null;
-
 
 const setupCanvas = () => {
     canvas = document.createElement('canvas');
@@ -229,9 +226,6 @@ const toggleEraserMode = () => {
   const stopDrawing = () => {
     isDrawing = false;
   };
-  
-  
-  // Funkció a ceruza ikonhoz
 
   export { togglePencilMode, toggleEraserMode };
   
