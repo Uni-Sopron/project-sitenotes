@@ -24,6 +24,19 @@ const App: React.FC = () => {
     });
   };
 
+  const addNote = () => {
+    // Send a message to the content script to add a note
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'addNote' }, (response) => {
+          if (response?.status === 'success') {
+            console.log('Note added');
+          }
+        });
+      }
+    });
+  }
+
   const openManageNotesPage = () => {
     window.open('manage-notes.html', '_blank');
   };
@@ -35,7 +48,7 @@ const App: React.FC = () => {
         <tbody>
           <tr>
             <td>
-              <button><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note" /></button>
+              <button onClick={addNote}><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note" /></button>
             </td>
             <td>
               <button onClick={showNotes}>
