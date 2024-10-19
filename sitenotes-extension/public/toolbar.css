@@ -28,7 +28,7 @@
   position: fixed;
   width: 1.5cm;
   /* Set width for vertical */
-  height: 11cm;
+  height: 12cm;
   /* Set height for vertical */
   flex-direction: column;
   /* Ensure vertical layout */
