@@ -4,13 +4,10 @@ let isDrawing = false;
 let isEraserModeActive = false; // Radír mód állapota
 let isErasing = false;
 
-let lastX = 0;
-let lastY = 0;
+let lastX: number | null = null;
+let lastY: number | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
-
-// let eraserButton: HTMLImageElement | null = null;
-// let pencilButton: HTMLImageElement | null = null;
 
 
 const setupCanvas = () => {
@@ -27,6 +24,11 @@ const setupCanvas = () => {
     document.body.appendChild(canvas);
     ctx = canvas.getContext('2d');
 }
+
+// TODO törlés funkció hozzáadása
+// const clearCanvas = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+//   ctx.clearRect(0, 0, canvas.width, canvas.height);
+// };
 
 const addPencilEventListeners = () => {
   canvas!.addEventListener('mousedown', startDrawing);
@@ -88,6 +90,8 @@ const toggleEraserMode = () => {
       canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
     } else {
       // Ha a radír mód inaktív, akkor aktiváljuk
+      lastX = null; // felejtse el a ceruza állapotát
+      lastY = null;
       activateEraserMode();
       removePencilEventlisteners();
       canvas!.style.cursor = 'crosshair';
@@ -104,40 +108,53 @@ const toggleEraserMode = () => {
 
   const erase = (e: MouseEvent | TouchEvent) => {
     e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
-    if (ctx && canvas && isErasing) {
-      let x = 0;
-      let y = 0;
-      const eraseSize = 20; // A radír mérete
-  
-      if (e instanceof MouseEvent) {
-        // Egér esemény esetén
-        x = e.clientX - canvas.offsetLeft;
-        y = e.clientY - canvas.offsetTop;
-      } else if (e instanceof TouchEvent) {
-        // Érintés esemény esetén
-        const touch = e.touches[0] || e.changedTouches[0];
-        x = (touch?.clientX ?? 0) - canvas.offsetLeft;
-        y = (touch?.clientY ?? 0) - canvas.offsetTop;
-      }
-  
-      // A radírozás megkezdése
-      ctx.save(); // Elmentjük a jelenlegi állapotot
-      ctx.globalCompositeOperation = 'destination-out'; // Beállítjuk a törlés módját
-  
+
+  if (ctx && canvas && isErasing) {
+    let x = 0;
+    let y = 0;
+    const eraseSize = 20; // A radír mérete
+
+    if (e instanceof MouseEvent) {
+      // Egér esemény esetén
+      x = e.clientX - canvas.offsetLeft;
+      y = e.clientY - canvas.offsetTop;
+    } else if (e instanceof TouchEvent) {
+      // Érintés esemény esetén
+      const touch = e.touches[0] || e.changedTouches[0];
+      x = (touch?.clientX ?? 0) - canvas.offsetLeft;
+      y = (touch?.clientY ?? 0) - canvas.offsetTop;
+    }
+
+    // A radírozás megkezdése
+    ctx.save(); // Elmentjük a jelenlegi állapotot
+    ctx.globalCompositeOperation = 'destination-out'; // Beállítjuk a törlés módját
+
+    if (lastX !== null && lastY !== null) {
+      // Ha van előző pontunk, akkor vonalat húzunk
       ctx.beginPath();
-      ctx.arc(x, y, eraseSize / 2, 0, Math.PI * 2, false); // Egy kör rajzolása a megadott koordinátákon
-      ctx.fill(); // Kitöltjük a kört, ez törlésként működik
-  
-      ctx.restore(); // Visszaállítjuk az eredeti állapotot
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.lineWidth = eraseSize;
+      ctx.stroke(); // A vonal kirajzolása
+    }
+
+    // A jelenlegi pontot tároljuk a következő vonalhoz
+    lastX = x;
+    lastY = y;
+
+    ctx.restore(); // Visszaállítjuk az eredeti állapotot
     }
   };
   
-  const startErasing = () => {
+  const startErasing = (e: MouseEvent | TouchEvent) => {
     isErasing = true;
+    erase(e)
   };
   
   const stopErasing = () => {
     isErasing = false;
+    lastX = null;
+    lastY = null;
   };
   
 
@@ -149,21 +166,13 @@ const toggleEraserMode = () => {
       // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
       canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
       removePencilEventlisteners();
-    //   if (pencilButton) {
-    //     pencilButton.style.opacity = '1';
-    //   }
+
       isPencilModeActive = false;
       canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
     } else {
       // Ha a ceruza mód inaktív, akkor aktiváljuk
       activatePencilMode();
       removeEraserEventlisteners();
-    //   if (pencilButton) {
-    //     pencilButton.style.opacity = '0.5';
-    //   }
-    //   if (eraserButton) {
-    //     eraserButton.style.opacity = '1';
-    //   }
       canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
       isPencilModeActive = true;
       isEraserModeActive = false;
@@ -204,7 +213,9 @@ const toggleEraserMode = () => {
         offsetY = touch.clientY - canvas!.offsetTop;
     }
         ctx.beginPath();             // Kezdünk egy új útvonalat
-        ctx.moveTo(lastX, lastY);     // Rajzolás a korábbi pozícióból
+        if (lastX !== null && lastY !== null) {
+            ctx.moveTo(lastX, lastY);     // Rajzolás a korábbi pozícióból
+        }
         ctx.lineTo(offsetX, offsetY); // Rajzolás az új pozícióig
         ctx.stroke();                 // Vonal megjelenítése
         [lastX, lastY] = [offsetX, offsetY]; // Frissítjük az utolsó pozíciót
@@ -229,9 +240,6 @@ const toggleEraserMode = () => {
   const stopDrawing = () => {
     isDrawing = false;
   };
-  
-  
-  // Funkció a ceruza ikonhoz
 
   export { togglePencilMode, toggleEraserMode };
   
