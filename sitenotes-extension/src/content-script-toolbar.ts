@@ -2,8 +2,8 @@ import { togglePencilMode, toggleEraserMode } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter'; // Importáld a setHighlighterButton-t
 let toolbar: HTMLDivElement | null = null;
-let isVertical = false; 
-let isMovable = false; 
+let isVertical = false;
+let isMovable = false;
 
 // TOOLBAR FUNCTIONALITY
 const createToolbar = () => {
@@ -16,7 +16,7 @@ const createToolbar = () => {
   link.href = chrome.runtime.getURL('toolbar.css');
   shadowRoot.appendChild(link);
 
-  toolbar = document.createElement('div');  
+  toolbar = document.createElement('div');
   toolbar.id = 'myToolbar';
   toolbar.className = isVertical ? 'rounded-rectangle vertical' : 'rounded-rectangle horizontal';
   toolbar.style.position = 'fixed';
@@ -28,8 +28,8 @@ const createToolbar = () => {
   toolbar.style.border = '1px solid black';
   toolbar.style.borderRadius = '15px';
   toolbar.style.backgroundColor = 'white';
-  toolbar.style.zIndex = '9999'; 
-  toolbar.style.pointerEvents = 'auto'; 
+  toolbar.style.zIndex = '9999';
+  toolbar.style.pointerEvents = 'auto';
 
   let isDragging = false;
   let offsetX = 0;
@@ -76,24 +76,24 @@ const createToolbar = () => {
     const buttonsConfig = isVertical
       ? [
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Circle
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/pen-solid.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
       ];
 
@@ -111,7 +111,7 @@ const createToolbar = () => {
 
       // Beállítja a gombot a highlighterhez
       if (className === 'highlighter-button') {
-          setHighlighterButton(button); // A gomb referencia beállítása
+        setHighlighterButton(button); // A gomb referencia beállítása
       }
     });
   };
