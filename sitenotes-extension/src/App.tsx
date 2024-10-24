@@ -25,17 +25,23 @@ const App: React.FC = () => {
   };
 
   const addNote = () => {
-    // Send a message to the content script to add a note
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { action: 'addNote' }, (response) => {
-          if (response?.status === 'success') {
-            console.log('Note added');
+          if (response) {
+            if (response.status === 'success') {
+              console.log('Note added successfully');
+            } else {
+              console.error('Failed to add note:', response.message);
+            }
+          } else {
+            console.error('No response received from content script.');
           }
         });
       }
     });
-  }
+  };
+  
 
   const openManageNotesPage = () => {
     window.open('manage-notes.html', '_blank');
