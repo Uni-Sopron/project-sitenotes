@@ -141,7 +141,7 @@ const toggleEraserButton = () => {
     eraserMenu = document.createElement('div');
     eraserMenu.id = 'eraserMenu';
     eraserMenu.style.position = 'absolute';
-    eraserMenu.style.top = `${toolbarRect.bottom - toolbarRect.height}px`; // Y pozíció
+    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
     eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
     eraserMenu.style.height = '40px'; // Magasság
@@ -150,6 +150,7 @@ const toggleEraserButton = () => {
     eraserMenu.style.border = '1px solid black';
     eraserMenu.style.padding = '15px'; // ne állítgasd köszi <3 elrontja a szélesség számítást
     eraserMenu.style.zIndex = '9999';
+    eraserMenu.style.borderRadius = '15px';
 
     
     // Radír méret beállító
@@ -165,6 +166,10 @@ const toggleEraserButton = () => {
       const value = (e.target as HTMLInputElement).value;
       setEraserSize(parseInt(value)); 
     };
+
+  //   const clearButton = document.getElementById('myButton') as HTMLButtonElement;
+  //   clearButton.addEventListener('click', () => {
+  // });
 
 
     eraserMenu.appendChild(sizeLabel);
