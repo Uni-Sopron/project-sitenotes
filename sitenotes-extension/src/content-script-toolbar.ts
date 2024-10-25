@@ -1,7 +1,10 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, getEraserModeActive, setEraserModeActive } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter'; // Importáld a setHighlighterButton-t
 let toolbar: HTMLDivElement | null = null;
+let eraserMenu: HTMLDivElement | null = null;
+let eraserButton: HTMLImageElement | null = null;
+let moveButton: HTMLImageElement | null = null;
 let isVertical = false;
 let isMovable = false;
 
@@ -62,9 +65,14 @@ const createToolbar = () => {
 
   const toggleMovability = () => {
     isMovable = !isMovable;
-    const moveButton = toolbar?.querySelector('.move-button img') as HTMLImageElement;
+    moveButton = toolbar?.querySelector('.move-button img') as HTMLImageElement;
     if (moveButton) {
       moveButton.style.opacity = isMovable ? '0.5' : '1';
+    }
+    if (eraserMenu && eraserButton){
+      eraserMenu.style.display = 'none';
+      eraserButton.style.opacity = '1';
+      setEraserModeActive(false);
     }
   };
 
@@ -131,8 +139,16 @@ const toggleToolbarVisibility = () => {
 
 const toggleEraserButton = () => {
   toggleEraserMode();
+
+  eraserButton = toolbar?.querySelector('.eraser-button') as HTMLImageElement;
+  if (eraserButton) {
+    eraserButton.style.opacity = getEraserModeActive() ? '0.5' : '1'}
+  if (moveButton) {
+    moveButton.style.opacity = '1';
+    isMovable = false;
+  }
   
-  let eraserMenu = document.getElementById('eraserMenu');
+  eraserMenu = document.getElementById('eraserMenu') as HTMLDivElement;
 
   const toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
 

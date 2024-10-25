@@ -87,7 +87,7 @@ const toggleEraserMode = () => {
       // Ha a radír mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a radírozást
       canvas!.style.cursor = 'default';
       removeEraserEventlisteners();
-      isEraserModeActive = false;
+      setEraserModeActive(false);
       canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
     } else {
       // Ha a radír mód inaktív, akkor aktiváljuk
@@ -96,8 +96,8 @@ const toggleEraserMode = () => {
       activateEraserMode();
       removePencilEventlisteners();
       canvas!.style.cursor = 'crosshair';
-      isEraserModeActive = true;
-      isPencilModeActive = false;
+      setEraserModeActive(true);
+      setPencilModeActive(false);
       canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
     }
   };
@@ -159,6 +159,15 @@ const toggleEraserMode = () => {
  const setEraserSize = (size: number) => {
     eraseSize = size;
 };
+
+
+const setEraserModeActive = (value: boolean) => {
+isEraserModeActive = value;
+}
+
+const getEraserModeActive = () => {
+return isEraserModeActive;
+}
   
   
   // PENCIL FUNCTIONALITY
@@ -168,15 +177,15 @@ const toggleEraserMode = () => {
       canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
       removePencilEventlisteners();
 
-      isPencilModeActive = false;
+      setPencilModeActive(false);
       canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
     } else {
       // Ha a ceruza mód inaktív, akkor aktiváljuk
       activatePencilMode();
       removeEraserEventlisteners();
       canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
-      isPencilModeActive = true;
-      isEraserModeActive = false;
+      setPencilModeActive(true);
+      setEraserModeActive(false);
       canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
     }
   };
@@ -242,6 +251,14 @@ const toggleEraserMode = () => {
     isDrawing = false;
   };
 
-  export { togglePencilMode, toggleEraserMode, setEraserSize };
+  const setPencilModeActive = (value: boolean) => {
+    isPencilModeActive = value;
+  };
+
+  const getPencilModeActive = () => {
+    return isPencilModeActive;
+  };
+
+  export { togglePencilMode, toggleEraserMode, setEraserSize, getEraserModeActive, setEraserModeActive, setPencilModeActive, getPencilModeActive };
   
   
