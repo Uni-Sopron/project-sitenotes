@@ -63,7 +63,7 @@ function addNoteToPage() {
     buttonDiv.appendChild(anchorButton);
     
     let isAnchored = false;
-    
+
     // Add color button
     const colorButton = document.createElement('button');
     colorButton.innerText = 'Color';
@@ -99,6 +99,12 @@ function addNoteToPage() {
     editButton.className = 'Buttons';
     buttonDiv.appendChild(editButton);
     
+    // information button for download and upload
+    const infoButton = document.createElement('button');
+    infoButton.innerText = 'Info';
+    infoButton.className = 'Buttons';
+    buttonDiv.appendChild(infoButton);
+
     // END OF BUTTONS
     
     // Create a text area and title area for user notes
@@ -156,6 +162,10 @@ function addNoteToPage() {
     downloadButton.onclick = function() {
         const title = titleArea.value;
         const content = textArea.value;
+        if (!title || !content){
+            alert('Please fill in the title and note before downloading the note.');
+            return;
+        }
         const blob = new Blob([`Title: ${title}\n\nNote: ${content}`], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -194,4 +204,9 @@ function addNoteToPage() {
         textArea.readOnly = titleArea.readOnly = !isEditable;
         editButton.innerText = isEditable ? 'Readonly' : 'Editable';
     };
+
+    // info alert for development, so everybody understands
+    infoButton.onclick = function() {
+        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tX: Delete the note. \n\n\tReadonly: Make the note editable or readonly.');
+    }
 }
