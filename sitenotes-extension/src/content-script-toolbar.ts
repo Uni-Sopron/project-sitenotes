@@ -1,4 +1,4 @@
-import { togglePencilMode, toggleEraserMode } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter'; // Importáld a setHighlighterButton-t
 let toolbar: HTMLDivElement | null = null;
@@ -83,7 +83,7 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
@@ -92,7 +92,7 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserMode, className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
       ];
@@ -128,6 +128,54 @@ const toggleToolbarVisibility = () => {
     createToolbar();
   }
 };
+
+const toggleEraserButton = () => {
+  toggleEraserMode();
+  
+  let eraserMenu = document.getElementById('eraserMenu');
+
+  const toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+
+  if (!eraserMenu) {
+    // A radír menü létrehozása
+    eraserMenu = document.createElement('div');
+    eraserMenu.id = 'eraserMenu';
+    eraserMenu.style.position = 'absolute';
+    eraserMenu.style.top = `${toolbarRect.bottom - toolbarRect.height}px`; // Y pozíció
+    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
+    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    eraserMenu.style.height = '40px'; // Magasság
+
+    eraserMenu.style.backgroundColor = 'white';
+    eraserMenu.style.border = '1px solid black';
+    eraserMenu.style.padding = '15px'; // ne állítgasd köszi <3 elrontja a szélesség számítást
+    eraserMenu.style.zIndex = '9999';
+
+    
+    // Radír méret beállító
+    const sizeLabel = document.createElement('label');
+    sizeLabel.textContent = 'Radír mérete: ';
+
+    const sizeSlider = document.createElement('input');
+    sizeSlider.type = 'range';
+    sizeSlider.min = '10';
+    sizeSlider.max = '50';
+    sizeSlider.value = '25';
+    sizeSlider.oninput = (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      setEraserSize(parseInt(value)); 
+    };
+
+
+    eraserMenu.appendChild(sizeLabel);
+    eraserMenu.appendChild(sizeSlider);
+
+    document.body.appendChild(eraserMenu);
+    } else {
+    eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
+    }
+
+}
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.action === 'toggleToolbar') {

@@ -8,6 +8,7 @@ let lastX: number | null = null;
 let lastY: number | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
+let eraseSize: number = 25;
 
 
 const setupCanvas = () => {
@@ -36,8 +37,8 @@ const addPencilEventListeners = () => {
   canvas!.addEventListener('mouseup', stopDrawing);
   canvas!.addEventListener('mouseout', stopDrawing);
 
-  canvas!.addEventListener('touchstart', startDrawing);
-  canvas!.addEventListener('touchmove', draw);
+  canvas!.addEventListener('touchstart', startDrawing, { passive: true });
+  canvas!.addEventListener('touchmove', draw, { passive: false });
   canvas!.addEventListener('touchend', stopDrawing);
   canvas!.addEventListener('touchcancel', stopDrawing);
 }
@@ -59,8 +60,8 @@ const addEraserEventListeners = () => {
     canvas!.addEventListener('mouseup', stopErasing);
     canvas!.addEventListener('mouseout', stopErasing);
 
-    canvas!.addEventListener('touchstart', startErasing);
-    canvas!.addEventListener('touchmove', erase);
+    canvas!.addEventListener('touchstart', startErasing, { passive: true });
+    canvas!.addEventListener('touchmove', erase, { passive: false });
     canvas!.addEventListener('touchend', stopErasing);
     canvas!.addEventListener('touchcancel', stopErasing);
 }
@@ -112,7 +113,6 @@ const toggleEraserMode = () => {
   if (ctx && canvas && isErasing) {
     let x = 0;
     let y = 0;
-    const eraseSize = 20; // A radír mérete
 
     if (e instanceof MouseEvent) {
       // Egér esemény esetén
@@ -146,9 +146,8 @@ const toggleEraserMode = () => {
     }
   };
   
-  const startErasing = (e: MouseEvent | TouchEvent) => {
+  const startErasing = () => {
     isErasing = true;
-    erase(e)
   };
   
   const stopErasing = () => {
@@ -157,7 +156,9 @@ const toggleEraserMode = () => {
     lastY = null;
   };
   
-
+ const setEraserSize = (size: number) => {
+    eraseSize = size;
+};
   
   
   // PENCIL FUNCTIONALITY
@@ -183,13 +184,13 @@ const toggleEraserMode = () => {
   const activatePencilMode = () => {
     if (!canvas) {
       setupCanvas();
-      if (ctx) {
-        // Beállítjuk a rajzolás alapértelmezett tulajdonságait
-        ctx.strokeStyle = '#1974D2';
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.lineWidth = 5;
-      }
+    }
+    if (ctx) {
+      // Beállítjuk a rajzolás alapértelmezett tulajdonságait
+      ctx.strokeStyle = '#1974D2';
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 30;
     }
     addPencilEventListeners();
   };
@@ -241,6 +242,6 @@ const toggleEraserMode = () => {
     isDrawing = false;
   };
 
-  export { togglePencilMode, toggleEraserMode };
+  export { togglePencilMode, toggleEraserMode, setEraserSize };
   
   
