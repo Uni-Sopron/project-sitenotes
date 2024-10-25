@@ -64,7 +64,7 @@ const createToolbar = () => {
     isMovable = !isMovable;
     const moveButton = toolbar?.querySelector('.move-button img') as HTMLImageElement;
     if (moveButton) {
-      moveButton.style.opacity = isMovable ? '1' : '0.5';
+      moveButton.style.opacity = isMovable ? '0.5' : '1';
     }
   };
 
