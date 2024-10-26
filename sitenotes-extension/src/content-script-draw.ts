@@ -78,17 +78,19 @@ const removeEraserEventlisteners = () => {
 
 }
 
-
+const stopEraserMode = () => {
+    canvas!.style.cursor = 'default';
+    removeEraserEventlisteners();
+    setEraserModeActive(false);
+    canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
+}
 
 // ERASER FUNCTIONALITY
 const toggleEraserMode = () => {
 
     if (isEraserModeActive) {
       // Ha a radír mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a radírozást
-      canvas!.style.cursor = 'default';
-      removeEraserEventlisteners();
-      setEraserModeActive(false);
-      canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
+      stopEraserMode();
     } else {
       // Ha a radír mód inaktív, akkor aktiváljuk
       lastX = null; // felejtse el a ceruza állapotát
@@ -168,17 +170,20 @@ isEraserModeActive = value;
 const getEraserModeActive = () => {
 return isEraserModeActive;
 }
+
+const stopPencilMode = () => {
+  canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
+  removePencilEventlisteners();
+  setPencilModeActive(false);
+  canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
+}
   
   
   // PENCIL FUNCTIONALITY
   const togglePencilMode = () => {
     if (isPencilModeActive) {
       // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
-      canvas!.style.cursor = 'default'; // Alapértelmezett egérkurzor
-      removePencilEventlisteners();
-
-      setPencilModeActive(false);
-      canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
+      stopPencilMode();
     } else {
       // Ha a ceruza mód inaktív, akkor aktiváljuk
       activatePencilMode();
@@ -259,6 +264,15 @@ return isEraserModeActive;
     return isPencilModeActive;
   };
 
-  export { togglePencilMode, toggleEraserMode, setEraserSize, getEraserModeActive, setEraserModeActive, setPencilModeActive, getPencilModeActive };
+  export { 
+    togglePencilMode, 
+    toggleEraserMode, 
+    setEraserSize, 
+    getEraserModeActive, 
+    setEraserModeActive, 
+    setPencilModeActive, 
+    getPencilModeActive, 
+    stopEraserMode,
+    stopPencilMode};
   
   

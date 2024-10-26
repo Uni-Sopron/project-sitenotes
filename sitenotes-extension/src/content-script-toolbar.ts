@@ -1,12 +1,74 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, getEraserModeActive, setEraserModeActive } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter'; // Importáld a setHighlighterButton-t
+import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
-let eraserButton: HTMLImageElement | null = null;
-let moveButton: HTMLImageElement | null = null;
+let activeButton: string | null = null;
 let isVertical = false;
 let isMovable = false;
+
+const startProcess = (buttonId: string) => {
+
+  if (activeButton) {
+    setButtonOpacity(activeButton, 1);
+    stopProcess();
+
+    if (activeButton === buttonId) {
+      activeButton = null
+      return;
+    }
+  }
+  activeButton = buttonId;
+  setButtonOpacity(buttonId, 0.5);
+
+  // A gomb ID-jának alapján indítsd el a megfelelő folyamatot
+  switch (buttonId) {
+    case 'pencil-button':
+      togglePencilMode();
+      break;
+    case 'highlighter-button':
+      toggleHighlighterMode();
+      break;
+    case 'eraser-button':
+      toggleEraserButton();
+      break;
+    case 'move-button':
+      isMovable = true;
+      break
+  }
+};
+
+const stopProcess = () => {
+  // állítsd le a jelenlegi folyamatot
+
+  switch (activeButton) {
+    case 'pencil-button':
+      // Ceruza kikapcsoló
+      stopPencilMode();
+      setPencilModeActive(false);
+      break;
+    case 'highlighter-button':
+      // Highlighter kikapcsoló
+      break;
+    case 'eraser-button':
+      // Radír kikapcsoló
+      setEraserModeActive(false);
+      stopEraserMode(); // csúnya, de megoldás h ne radírozzon
+      eraserMenu!.style.display = 'none';
+      break;
+    case 'move-button':
+      // Mozgatás kikapcsoló
+      isMovable = false;
+      break;
+  }
+  };
+
+const setButtonOpacity = (buttonId: string, opacity: number): void => {
+  const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
+  if (button) {
+      button.style.opacity = `${opacity}`;
+  }
+}
 
 // TOOLBAR FUNCTIONALITY
 const createToolbar = () => {
@@ -63,19 +125,6 @@ const createToolbar = () => {
     updateButtonsConfig();
   };
 
-  const toggleMovability = () => {
-    isMovable = !isMovable;
-    moveButton = toolbar?.querySelector('.move-button img') as HTMLImageElement;
-    if (moveButton) {
-      moveButton.style.opacity = isMovable ? '0.5' : '1';
-    }
-    if (eraserMenu && eraserButton){
-      eraserMenu.style.display = 'none';
-      eraserButton.style.opacity = '1';
-      setEraserModeActive(false);
-    }
-  };
-
   const updateButtonsConfig = () => {
     while (toolbar!.firstChild) {
       toolbar!.removeChild(toolbar!.firstChild);
@@ -84,24 +133,24 @@ const createToolbar = () => {
     const buttonsConfig = isVertical
       ? [
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Circle
-        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter',  onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
       ];
 
@@ -139,15 +188,6 @@ const toggleToolbarVisibility = () => {
 
 const toggleEraserButton = () => {
   toggleEraserMode();
-
-  eraserButton = toolbar?.querySelector('.eraser-button') as HTMLImageElement;
-  if (eraserButton) {
-    eraserButton.style.opacity = getEraserModeActive() ? '0.5' : '1'}
-  if (moveButton) {
-    moveButton.style.opacity = '1';
-    isMovable = false;
-  }
-  
   eraserMenu = document.getElementById('eraserMenu') as HTMLDivElement;
 
   const toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
