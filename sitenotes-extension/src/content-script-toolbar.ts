@@ -197,9 +197,6 @@ const toggleEraserButton = () => {
     eraserMenu = document.createElement('div');
     eraserMenu.id = 'eraserMenu';
     eraserMenu.style.position = 'absolute';
-    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
     eraserMenu.style.height = '80px'; // Magasság
 
     eraserMenu.style.backgroundColor = 'white';
@@ -247,6 +244,11 @@ const toggleEraserButton = () => {
     } else {
     eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
     }
+
+    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
+    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
 
 }
 
