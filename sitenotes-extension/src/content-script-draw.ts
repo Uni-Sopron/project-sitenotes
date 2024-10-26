@@ -206,7 +206,7 @@ const stopPencilMode = () => {
     }
     if (ctx) {
       // Beállítjuk a rajzolás alapértelmezett tulajdonságait
-      ctx.strokeStyle = '#1974D2';
+      ctx.strokeStyle = '#6969C0'; //#1974D2
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.lineWidth = 30;
@@ -259,6 +259,7 @@ const stopPencilMode = () => {
   
   const stopDrawing = () => {
     isDrawing = false;
+    [lastX, lastY] = [null, null];
   };
 
   const setPencilModeActive = (value: boolean) => {
