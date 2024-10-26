@@ -27,9 +27,9 @@ const setupCanvas = () => {
 }
 
 // TODO törlés funkció hozzáadása
-// const clearCanvas = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-//   ctx.clearRect(0, 0, canvas.width, canvas.height);
-// };
+const clearCanvas = () => {
+  ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+};
 
 const addPencilEventListeners = () => {
   canvas!.addEventListener('mousedown', startDrawing);
@@ -273,6 +273,7 @@ const stopPencilMode = () => {
     setPencilModeActive, 
     getPencilModeActive, 
     stopEraserMode,
-    stopPencilMode};
+    stopPencilMode,
+    clearCanvas};
   
   

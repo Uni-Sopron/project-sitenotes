@@ -1,4 +1,4 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
@@ -200,7 +200,7 @@ const toggleEraserButton = () => {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
     eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
-    eraserMenu.style.height = '40px'; // Magasság
+    eraserMenu.style.height = '80px'; // Magasság
 
     eraserMenu.style.backgroundColor = 'white';
     eraserMenu.style.border = '1px solid black';
@@ -223,13 +223,25 @@ const toggleEraserButton = () => {
       setEraserSize(parseInt(value)); 
     };
 
-  //   const clearButton = document.getElementById('myButton') as HTMLButtonElement;
-  //   clearButton.addEventListener('click', () => {
-  // });
+    const clearButton = document.createElement('button');
+    clearButton.textContent = 'Törlés';
+    clearButton.addEventListener('click', clearCanvas);
+    clearButton.style.marginLeft = '0px'; // Balra igazítás
+    clearButton.style.marginTop = '5px'; // Térköz az előző label objektumtól
+    clearButton.style.padding = '8px 12px'; // Nagyobb gombméret
+    clearButton.style.borderRadius = '5px'; // Lekerekített szélek
+    clearButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
+    clearButton.style.color = 'black'; // Szöveg színe
+    clearButton.style.border = '1px solid #ddd'; // Határvonal
+    
+    // Label alá igazítás
+    clearButton.style.display = 'block'; // Külön sorba kerül a gomb
+    clearButton.style.textAlign = 'left'; // Balra igazított szöveg
 
 
     eraserMenu.appendChild(sizeLabel);
     eraserMenu.appendChild(sizeSlider);
+    eraserMenu.appendChild(clearButton);
 
     document.body.appendChild(eraserMenu);
     } else {
