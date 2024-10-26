@@ -26,7 +26,6 @@ const setupCanvas = () => {
     ctx = canvas.getContext('2d');
 }
 
-// TODO törlés funkció hozzáadása
 const clearCanvas = () => {
   ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
 };
@@ -194,6 +193,12 @@ const stopPencilMode = () => {
       canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
     }
   };
+
+  const setPencilSize = (size: number) => {
+    if (ctx) {
+      ctx.lineWidth = size;
+    }
+  }
   
   const activatePencilMode = () => {
     if (!canvas) {
@@ -274,6 +279,7 @@ const stopPencilMode = () => {
     getPencilModeActive, 
     stopEraserMode,
     stopPencilMode,
-    clearCanvas};
+    clearCanvas,
+    setPencilSize};
   
   

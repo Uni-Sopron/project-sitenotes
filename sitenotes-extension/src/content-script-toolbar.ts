@@ -1,8 +1,9 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
+let pencilMenu: HTMLDivElement | null = null;
 let activeButton: string | null = null;
 let isVertical = false;
 let isMovable = false;
@@ -24,7 +25,7 @@ const startProcess = (buttonId: string) => {
   // A gomb ID-jának alapján indítsd el a megfelelő folyamatot
   switch (buttonId) {
     case 'pencil-button':
-      togglePencilMode();
+      togglePencilButton();
       break;
     case 'highlighter-button':
       toggleHighlighterMode();
@@ -46,6 +47,7 @@ const stopProcess = () => {
       // Ceruza kikapcsoló
       stopPencilMode();
       setPencilModeActive(false);
+      pencilMenu!.style.display = 'none';
       break;
     case 'highlighter-button':
       // Highlighter kikapcsoló
@@ -189,8 +191,7 @@ const toggleToolbarVisibility = () => {
 const toggleEraserButton = () => {
   toggleEraserMode();
   eraserMenu = document.getElementById('eraserMenu') as HTMLDivElement;
-
-  const toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
 
   if (!eraserMenu) {
     // A radír menü létrehozása
@@ -250,6 +251,48 @@ const toggleEraserButton = () => {
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
     eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
 
+}
+
+const togglePencilButton = () => {
+  togglePencilMode();
+  pencilMenu = document.getElementById('pencilMenu') as HTMLDivElement;
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+
+  if (!pencilMenu) {
+    pencilMenu = document.createElement('div');
+    pencilMenu.id = 'pencilMenu';
+    pencilMenu.style.position = 'absolute';
+    pencilMenu.style.height = '80px';
+    pencilMenu.style.backgroundColor = 'white';
+    pencilMenu.style.border = '1px solid black';
+    pencilMenu.style.padding = '15px';
+    pencilMenu.style.zIndex = '9999';
+    pencilMenu.style.borderRadius = '15px';
+
+    const sizeLabel = document.createElement('label');
+    sizeLabel.textContent = 'Ceruza mérete: ';
+
+    const sizeSlider = document.createElement('input');
+    sizeSlider.type = 'range';
+    sizeSlider.min = '10';
+    sizeSlider.max = '50';
+    sizeSlider.value = '25';
+    sizeSlider.oninput = (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      setPencilSize(parseInt(value)); 
+    };
+
+    pencilMenu.appendChild(sizeLabel);
+    pencilMenu.appendChild(sizeSlider);
+    document.body.appendChild(pencilMenu);
+  } else {
+    pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'block' : 'none';
+    }
+
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+  pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
+  pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
