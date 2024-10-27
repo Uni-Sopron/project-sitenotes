@@ -1,5 +1,9 @@
 let isHighlighterModeActive = false;
 let highlighterButton: HTMLButtonElement | null = null; // Declare a variable to store the highlighter button element
+let isdeleteHighlighter = false;
+const setisdeleteHighlighter = (value: boolean) => {
+  isdeleteHighlighter = value;
+};
 // HIGHLIGHTER FUNCTIONALITY
 //Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik)
 const toggleHighlighterMode = () => {
@@ -32,7 +36,8 @@ const setHighlighterButton = (button: HTMLButtonElement) => {
 // Function to highlight selected text    # ez még mindig tördeli a sorokat!!!!!:(
 const highlightSelection = () => {
   const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return; // No selection, exit
+  console.log("ez a kiemelés.", selection);
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return; // No selection, exit
 
   // Loop through all the ranges in the selection
   for (let i = 0; i < selection.rangeCount; i++) {
@@ -40,7 +45,7 @@ const highlightSelection = () => {
     // Ha nincs meglévő kiemelés, alkalmazzunk közvetlen stílust
     const highlight = document.createElement('mark'); // Vagy használhatsz divet is
     highlight.style.backgroundColor = 'yellow'; // Állítsuk be a háttérszínt
-
+    highlight.addEventListener('click', removeHighlight);
     try {
       // Beágyazzuk a kijelölt tartalom köré a highlight elemet
       range.surroundContents(highlight);
@@ -50,5 +55,30 @@ const highlightSelection = () => {
   }
 };
 
+//todo: tördeli a szöveget ezzel a mentésnél lesz probléma. 
+//      Az eredeti szöveg tartalmaz linket/hivatkozást akkor azok elvesznek 
+//      el kell menteni az eredeti formáját
+// css ha ráviszem az egeret akkor elszineződik a kijelölés
 
-export { toggleHighlighterMode, updateHighlighterButtonOpacity, setHighlighterButton };
+const removeHighlight = (event: MouseEvent): void => {
+  if (isdeleteHighlighter) {
+      const target = event.currentTarget as HTMLElement; // Az aktuális 'mark' elem
+      console.log("belépett a törlésbe");
+      console.log("target", target);
+
+      // Eltávolítjuk a 'mark' elemet a szövegből
+      // A szülő elem, ahonnan el szeretnénk távolítani a 'mark' elemet
+      const parent = target.parentNode;
+
+      if (parent) {
+          // A markert leválasztjuk és visszahelyezzük a szöveget a szülőbe
+          const textNode = document.createTextNode(target.textContent || ''); // Új szöveg csomópont létrehozása
+          parent.replaceChild(textNode, target); // Leválasztjuk a markert és a szöveget betesszük a szülőbe
+      }
+  } else {
+      console.log("nincs bekapcsolva a törlés");
+  }
+};
+
+export { toggleHighlighterMode, updateHighlighterButtonOpacity, setHighlighterButton, setisdeleteHighlighter };
+
