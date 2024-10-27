@@ -1,9 +1,76 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter'; // Importáld a setHighlighterButton-t
+import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
+let eraserMenu: HTMLDivElement | null = null;
+let pencilMenu: HTMLDivElement | null = null;
+let activeButton: string | null = null;
 let isVertical = false;
 let isMovable = false;
+
+const startProcess = (buttonId: string) => {
+
+  if (activeButton) {
+    setButtonOpacity(activeButton, 1);
+    stopProcess();
+
+    if (activeButton === buttonId) {
+      activeButton = null
+      return;
+    }
+  }
+  activeButton = buttonId;
+  setButtonOpacity(buttonId, 0.5);
+
+  // A gomb ID-jának alapján indítsd el a megfelelő folyamatot
+  switch (buttonId) {
+    case 'pencil-button':
+      togglePencilButton();
+      break;
+    case 'highlighter-button':
+      toggleHighlighterMode();
+      break;
+    case 'eraser-button':
+      toggleEraserButton();
+      break;
+    case 'move-button':
+      isMovable = true;
+      break
+  }
+};
+
+const stopProcess = () => {
+  // állítsd le a jelenlegi folyamatot
+
+  switch (activeButton) {
+    case 'pencil-button':
+      // Ceruza kikapcsoló
+      stopPencilMode();
+      setPencilModeActive(false);
+      pencilMenu!.style.display = 'none';
+      break;
+    case 'highlighter-button':
+      // Highlighter kikapcsoló
+      break;
+    case 'eraser-button':
+      // Radír kikapcsoló
+      setEraserModeActive(false);
+      stopEraserMode(); // csúnya, de megoldás h ne radírozzon
+      eraserMenu!.style.display = 'none';
+      break;
+    case 'move-button':
+      // Mozgatás kikapcsoló
+      isMovable = false;
+      break;
+  }
+  };
+
+const setButtonOpacity = (buttonId: string, opacity: number): void => {
+  const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
+  if (button) {
+      button.style.opacity = `${opacity}`;
+  }
+}
 
 // TOOLBAR FUNCTIONALITY
 const createToolbar = () => {
@@ -60,14 +127,6 @@ const createToolbar = () => {
     updateButtonsConfig();
   };
 
-  const toggleMovability = () => {
-    isMovable = !isMovable;
-    const moveButton = toolbar?.querySelector('.move-button img') as HTMLImageElement;
-    if (moveButton) {
-      moveButton.style.opacity = isMovable ? '1' : '0.5';
-    }
-  };
-
   const updateButtonsConfig = () => {
     while (toolbar!.firstChild) {
       toolbar!.removeChild(toolbar!.firstChild);
@@ -76,24 +135,24 @@ const createToolbar = () => {
     const buttonsConfig = isVertical
       ? [
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Circle
-        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
-        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: togglePencilMode, className: 'pencil-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: toggleHighlighterMode, className: 'highlighter-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter',  onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: toggleEraserButton, className: 'eraser-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: toggleMovability, className: 'move-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
       ];
 
@@ -131,20 +190,15 @@ const toggleToolbarVisibility = () => {
 
 const toggleEraserButton = () => {
   toggleEraserMode();
-  
-  let eraserMenu = document.getElementById('eraserMenu');
-
-  const toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+  eraserMenu = document.getElementById('eraserMenu') as HTMLDivElement;
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
 
   if (!eraserMenu) {
     // A radír menü létrehozása
     eraserMenu = document.createElement('div');
     eraserMenu.id = 'eraserMenu';
     eraserMenu.style.position = 'absolute';
-    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
-    eraserMenu.style.height = '40px'; // Magasság
+    eraserMenu.style.height = '80px'; // Magasság
 
     eraserMenu.style.backgroundColor = 'white';
     eraserMenu.style.border = '1px solid black';
@@ -167,19 +221,78 @@ const toggleEraserButton = () => {
       setEraserSize(parseInt(value)); 
     };
 
-  //   const clearButton = document.getElementById('myButton') as HTMLButtonElement;
-  //   clearButton.addEventListener('click', () => {
-  // });
+    const clearButton = document.createElement('button');
+    clearButton.textContent = 'Törlés';
+    clearButton.addEventListener('click', clearCanvas);
+    clearButton.style.marginLeft = '0px'; // Balra igazítás
+    clearButton.style.marginTop = '5px'; // Térköz az előző label objektumtól
+    clearButton.style.padding = '8px 12px'; // Nagyobb gombméret
+    clearButton.style.borderRadius = '5px'; // Lekerekített szélek
+    clearButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
+    clearButton.style.color = 'black'; // Szöveg színe
+    clearButton.style.border = '1px solid #ddd'; // Határvonal
+    
+    // Label alá igazítás
+    clearButton.style.display = 'block'; // Külön sorba kerül a gomb
+    clearButton.style.textAlign = 'left'; // Balra igazított szöveg
 
 
     eraserMenu.appendChild(sizeLabel);
     eraserMenu.appendChild(sizeSlider);
+    eraserMenu.appendChild(clearButton);
 
     document.body.appendChild(eraserMenu);
     } else {
     eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
     }
 
+    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
+    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+
+}
+
+const togglePencilButton = () => {
+  togglePencilMode();
+  pencilMenu = document.getElementById('pencilMenu') as HTMLDivElement;
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+
+  if (!pencilMenu) {
+    pencilMenu = document.createElement('div');
+    pencilMenu.id = 'pencilMenu';
+    pencilMenu.style.position = 'absolute';
+    pencilMenu.style.height = '80px';
+    pencilMenu.style.backgroundColor = 'white';
+    pencilMenu.style.border = '1px solid black';
+    pencilMenu.style.padding = '15px';
+    pencilMenu.style.zIndex = '9999';
+    pencilMenu.style.borderRadius = '15px';
+
+    const sizeLabel = document.createElement('label');
+    sizeLabel.textContent = 'Ceruza mérete: ';
+
+    const sizeSlider = document.createElement('input');
+    sizeSlider.type = 'range';
+    sizeSlider.min = '10';
+    sizeSlider.max = '50';
+    sizeSlider.value = '25';
+    sizeSlider.oninput = (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      setPencilSize(parseInt(value)); 
+    };
+
+    pencilMenu.appendChild(sizeLabel);
+    pencilMenu.appendChild(sizeSlider);
+    document.body.appendChild(pencilMenu);
+  } else {
+    pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'block' : 'none';
+    }
+
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+  pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
+  pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
 }
 
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
