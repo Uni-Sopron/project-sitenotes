@@ -4,6 +4,7 @@ import { toggleHighlighterMode, setHighlighterButton } from './content-script-hi
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
+let highlighterMenu: HTMLDivElement | null = null;
 let activeButton: string | null = null;
 let isVertical = false;
 let isMovable = false;
@@ -28,7 +29,7 @@ const startProcess = (buttonId: string) => {
       togglePencilButton();
       break;
     case 'highlighter-button':
-      toggleHighlighterMode();
+      toggleHighlighterButton();
       break;
     case 'eraser-button':
       toggleEraserButton();
@@ -295,6 +296,34 @@ const togglePencilButton = () => {
   pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
 }
 
+const toggleHighlighterButton = () => {
+  toggleHighlighterMode();
+  highlighterMenu = document.getElementById('highlighterMenu') as HTMLDivElement;
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+
+  if (!highlighterMenu) {
+    highlighterMenu = document.createElement('div');
+    highlighterMenu.id = 'highlighterMenu';
+    highlighterMenu.style.position = 'absolute';
+    highlighterMenu.style.height = '80px';
+    highlighterMenu.style.backgroundColor = 'white';
+    highlighterMenu.style.border = '1px solid black';
+    highlighterMenu.style.padding = '15px';
+    highlighterMenu.style.zIndex = '9999';
+    highlighterMenu.style.borderRadius = '15px';
+
+    document.body.appendChild(highlighterMenu);
+  }
+  else{
+    highlighterMenu.style.display = highlighterMenu.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+  highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
+  highlighterMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+  
+}
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.action === 'toggleToolbar') {
     toggleToolbarVisibility();
