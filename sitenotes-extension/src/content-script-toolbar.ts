@@ -1,6 +1,6 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { toggleHighlighterMode, setHighlighterButton } from './content-script-highlighter';
+import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
@@ -52,6 +52,9 @@ const stopProcess = () => {
       break;
     case 'highlighter-button':
       // Highlighter kikapcsoló
+      setisHighlighterModeActive(false);
+      stopHighlighterMode();
+      highlighterMenu!.style.display = 'none';
       break;
     case 'eraser-button':
       // Radír kikapcsoló
@@ -168,11 +171,6 @@ const createToolbar = () => {
       button.appendChild(img);
       button.onclick = onClick;
       toolbar!.appendChild(button);
-
-      // Beállítja a gombot a highlighterhez
-      if (className === 'highlighter-button') {
-        setHighlighterButton(button); // A gomb referencia beállítása
-      }
     });
   };
 
@@ -297,7 +295,6 @@ const togglePencilButton = () => {
 }
 
 const toggleHighlighterButton = () => {
-  toggleHighlighterMode();
   highlighterMenu = document.getElementById('highlighterMenu') as HTMLDivElement;
   let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
 
@@ -312,6 +309,42 @@ const toggleHighlighterButton = () => {
     highlighterMenu.style.zIndex = '9999';
     highlighterMenu.style.borderRadius = '15px';
 
+    const highlighterButton = document.createElement('button');
+    highlighterButton.textContent = 'Highlight';
+    highlighterButton.style.marginLeft = '0px';
+    highlighterButton.style.marginTop = '5px';
+    highlighterButton.style.padding = '8px 12px'; // Nagyobb gombméret
+    highlighterButton.style.borderRadius = '5px'; // Lekerekített szélek
+    highlighterButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
+    highlighterButton.style.color = 'black'; // Szöveg színe
+    highlighterButton.style.border = '1px solid #ddd'; // Határvonal
+    highlighterButton.addEventListener('click', () => {
+      // Highlighter mód
+      setisdeleteHighlighter(false);
+      startHighlighterMode();
+      highlighterButton.style.backgroundColor = '#E8F3FF';
+      deleteHighlighterButton.style.backgroundColor = '#f8f9fa';
+    });
+
+    const deleteHighlighterButton = document.createElement('button');
+    deleteHighlighterButton.textContent = 'Delete Highlight';
+    deleteHighlighterButton.style.marginLeft = '0px';
+    deleteHighlighterButton.style.marginTop = '5px';
+    deleteHighlighterButton.style.padding = '8px 12px'; // Nagyobb gombméret
+    deleteHighlighterButton.style.borderRadius = '5px'; // Lekerekített szélek
+    deleteHighlighterButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
+    deleteHighlighterButton.style.color = 'black'; // Szöveg színe
+    deleteHighlighterButton.style.border = '1px solid #ddd'; // Határvonal
+    deleteHighlighterButton.style.display = 'block'; // Külön sorba kerül a gomb
+    deleteHighlighterButton.addEventListener('click', () => {
+      // Highlighter törlés mód
+      setisdeleteHighlighter(true);
+      highlighterButton.style.backgroundColor = '#f8f9fa';
+      deleteHighlighterButton.style.backgroundColor = '#E8F3FF';
+    });
+
+    highlighterMenu.appendChild(highlighterButton);
+    highlighterMenu.appendChild(deleteHighlighterButton);
     document.body.appendChild(highlighterMenu);
   }
   else{

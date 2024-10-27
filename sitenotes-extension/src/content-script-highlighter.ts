@@ -1,39 +1,36 @@
 let isHighlighterModeActive = false;
-let highlighterButton: HTMLButtonElement | null = null; // Declare a variable to store the highlighter button element
 let isdeleteHighlighter = false;
+
+
 const setisdeleteHighlighter = (value: boolean) => {
   isdeleteHighlighter = value;
 };
+
+const stopHighlighterMode = () => {
+  document.body.style.cursor = 'default';
+  document.removeEventListener('mouseup', highlightSelection);
+  isHighlighterModeActive = false;
+}
+
 // HIGHLIGHTER FUNCTIONALITY
 //Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik)
-const toggleHighlighterMode = () => {
-  if (isHighlighterModeActive) {
-    // Mód deaktiválása
-    document.body.style.cursor = 'default';
-    document.removeEventListener('mouseup', highlightSelection);
-    isHighlighterModeActive = false;
-    updateHighlighterButtonOpacity('1'); // Visszaállítja az átlátszóságot
-  } else {
-    // Mód aktiválása
-    document.body.style.cursor = 'text';
-    document.addEventListener('mouseup', highlightSelection);
-    isHighlighterModeActive = true;
-    updateHighlighterButtonOpacity('0.5'); // Szürke átlátszóság
-  }
+const startHighlighterMode = () => {
+  // Mód aktiválása
+  document.body.style.cursor = 'text';
+  document.addEventListener('mouseup', highlightSelection);
+  isHighlighterModeActive = true;
 };
 
-const updateHighlighterButtonOpacity = (opacity: string) => {
-  if (highlighterButton) {
-    const img = highlighterButton.querySelector('img') as HTMLImageElement;
-    img.style.opacity = opacity; // Átlátszóság beállítása
-  }
+const setisHighlighterModeActive = (value: boolean) => {
+  isHighlighterModeActive = value;
 };
 
-const setHighlighterButton = (button: HTMLButtonElement) => {
-  highlighterButton = button; // Beállítja a gomb hivatkozást
-};
+const getisHighlighterModeActive = () => {
+  return isHighlighterModeActive;
+}
 
-// Function to highlight selected text    # ez még mindig tördeli a sorokat!!!!!:(
+
+// Function to highlight selected text 
 const highlightSelection = () => {
   const selection = window.getSelection();
   console.log("ez a kiemelés.", selection);
@@ -80,5 +77,11 @@ const removeHighlight = (event: MouseEvent): void => {
   }
 };
 
-export { toggleHighlighterMode, updateHighlighterButtonOpacity, setHighlighterButton, setisdeleteHighlighter };
+export { 
+  startHighlighterMode, 
+  setisdeleteHighlighter,
+  stopHighlighterMode,
+  setisHighlighterModeActive,
+  getisHighlighterModeActive
+};
 
