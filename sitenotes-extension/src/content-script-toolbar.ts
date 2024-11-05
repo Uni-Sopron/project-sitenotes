@@ -1,11 +1,13 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
+import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive} from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
 let highlighterMenu: HTMLDivElement | null = null;
 let activeButton: string | null = null;
+let highlighterButton: HTMLButtonElement | null = null;
+let deleteHighlighterButton: HTMLButtonElement | null = null;
 let isVertical = false;
 let isMovable = false;
 
@@ -55,6 +57,8 @@ const stopProcess = () => {
       setisHighlighterModeActive(false);
       stopHighlighterMode();
       highlighterMenu!.style.display = 'none';
+      highlighterButton!.style.backgroundColor = '#f8f9fa';
+      deleteHighlighterButton!.style.backgroundColor = '#f8f9fa';
       break;
     case 'eraser-button':
       // Radír kikapcsoló
@@ -196,7 +200,7 @@ const toggleEraserButton = () => {
     // A radír menü létrehozása
     eraserMenu = document.createElement('div');
     eraserMenu.id = 'eraserMenu';
-    eraserMenu.style.position = 'absolute';
+    eraserMenu.style.position = 'fixed';
     eraserMenu.style.height = '80px'; // Magasság
 
     eraserMenu.style.backgroundColor = 'white';
@@ -260,7 +264,7 @@ const togglePencilButton = () => {
   if (!pencilMenu) {
     pencilMenu = document.createElement('div');
     pencilMenu.id = 'pencilMenu';
-    pencilMenu.style.position = 'absolute';
+    pencilMenu.style.position = 'fixed';
     pencilMenu.style.height = '80px';
     pencilMenu.style.backgroundColor = 'white';
     pencilMenu.style.border = '1px solid black';
@@ -301,7 +305,7 @@ const toggleHighlighterButton = () => {
   if (!highlighterMenu) {
     highlighterMenu = document.createElement('div');
     highlighterMenu.id = 'highlighterMenu';
-    highlighterMenu.style.position = 'absolute';
+    highlighterMenu.style.position = 'fixed';
     highlighterMenu.style.height = '80px';
     highlighterMenu.style.backgroundColor = 'white';
     highlighterMenu.style.border = '1px solid black';
@@ -309,7 +313,7 @@ const toggleHighlighterButton = () => {
     highlighterMenu.style.zIndex = '9999';
     highlighterMenu.style.borderRadius = '15px';
 
-    const highlighterButton = document.createElement('button');
+    highlighterButton = document.createElement('button');
     highlighterButton.textContent = 'Highlight';
     highlighterButton.style.marginLeft = '0px';
     highlighterButton.style.marginTop = '5px';
@@ -322,11 +326,11 @@ const toggleHighlighterButton = () => {
       // Highlighter mód
       setisdeleteHighlighter(false);
       startHighlighterMode();
-      highlighterButton.style.backgroundColor = '#E8F3FF';
-      deleteHighlighterButton.style.backgroundColor = '#f8f9fa';
+      highlighterButton!.style.backgroundColor = '#E8F3FF';
+      deleteHighlighterButton!.style.backgroundColor = '#f8f9fa';
     });
 
-    const deleteHighlighterButton = document.createElement('button');
+    deleteHighlighterButton = document.createElement('button');
     deleteHighlighterButton.textContent = 'Delete Highlight';
     deleteHighlighterButton.style.marginLeft = '0px';
     deleteHighlighterButton.style.marginTop = '5px';
@@ -339,8 +343,8 @@ const toggleHighlighterButton = () => {
     deleteHighlighterButton.addEventListener('click', () => {
       // Highlighter törlés mód
       setisdeleteHighlighter(true);
-      highlighterButton.style.backgroundColor = '#f8f9fa';
-      deleteHighlighterButton.style.backgroundColor = '#E8F3FF';
+      highlighterButton!.style.backgroundColor = '#f8f9fa';
+      deleteHighlighterButton!.style.backgroundColor = '#E8F3FF';
     });
 
     highlighterMenu.appendChild(highlighterButton);

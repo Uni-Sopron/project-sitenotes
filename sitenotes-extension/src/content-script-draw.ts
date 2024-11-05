@@ -133,8 +133,8 @@ const toggleEraserMode = () => {
     if (lastX !== null && lastY !== null) {
       // Ha van előző pontunk, akkor vonalat húzunk
       ctx.beginPath();
-      ctx.moveTo(lastX, lastY);
-      ctx.lineTo(x, y);
+      ctx.moveTo(lastX + window.scrollX, lastY + window.scrollY);
+      ctx.lineTo(x + window.scrollX, y + window.scrollY);
       ctx.lineWidth = eraseSize;
       ctx.stroke(); // A vonal kirajzolása
     }
