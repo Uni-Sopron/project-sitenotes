@@ -43,12 +43,33 @@ const highlightSelection = () => {
     const highlight = document.createElement('mark'); // Vagy használhatsz divet is
     highlight.style.backgroundColor = 'yellow'; // Állítsuk be a háttérszínt
     highlight.addEventListener('click', removeHighlight);
+    highlight.addEventListener('mouseenter', onHighlightMouseEnter);
+    highlight.addEventListener('mouseleave', onHighlightMouseLeave);
     try {
       // Beágyazzuk a kijelölt tartalom köré a highlight elemet
       range.surroundContents(highlight);
     } catch (e) {
       console.error('Nem lehetett körbevenni a tartalmat:', e);
     }
+  }
+};
+
+
+
+
+
+
+const onHighlightMouseEnter = (event: MouseEvent): void => {
+  if (isdeleteHighlighter) {
+    const target = event.currentTarget as HTMLElement;
+    target.style.backgroundColor = 'red'; // Change color to red on hover in delete mode
+  }
+};
+
+const onHighlightMouseLeave = (event: MouseEvent): void => {
+  if (isdeleteHighlighter) {
+    const target = event.currentTarget as HTMLElement;
+    target.style.backgroundColor = 'yellow'; // Revert color to yellow when mouse leaves
   }
 };
 
