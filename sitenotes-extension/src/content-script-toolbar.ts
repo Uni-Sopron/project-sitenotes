@@ -250,9 +250,16 @@ const toggleEraserButton = () => {
     }
 
     // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+    if (isVertical) {
+      eraserMenu.style.top = `${toolbarRect.bottom - 120}px`; // Y pozíció
+      eraserMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+      eraserMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    } else {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
     eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    }
+    
 
 }
 
@@ -292,10 +299,16 @@ const togglePencilButton = () => {
     pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'block' : 'none';
     }
 
-  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
-  pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-  pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-  pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+    if (isVertical) {
+      pencilMenu.style.top = `${toolbarRect.top + 140}px`; // Y pozíció
+      pencilMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+      pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    } else {
+    pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+    pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
+    pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    }
 }
 
 const toggleHighlighterButton = () => {
@@ -355,10 +368,16 @@ const toggleHighlighterButton = () => {
     highlighterMenu.style.display = highlighterMenu.style.display === 'none' ? 'block' : 'none';
   }
 
-  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
-  highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-  highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-  highlighterMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+    if (isVertical) {
+      highlighterMenu.style.top = `${toolbarRect.top + 180}px`; // Y pozíció
+      highlighterMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+      highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    } else {
+    highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+    highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
+    highlighterMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    }
   
 }
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
