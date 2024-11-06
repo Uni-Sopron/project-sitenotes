@@ -133,6 +133,7 @@ const createToolbar = () => {
     isVertical = !isVertical;
     toolbar!.className = isVertical ? 'rounded-rectangle vertical' : 'rounded-rectangle horizontal';
     updateButtonsConfig();
+    stopProcess();
   };
 
   const updateButtonsConfig = () => {
