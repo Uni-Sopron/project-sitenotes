@@ -52,7 +52,7 @@ const stopProcess = () => {
       stopPencilMode();
       setPencilModeActive(false);
       pencilMenu!.style.display = 'none';
-      activeButton = null;
+
       break;
     case 'highlighter-button':
       // Highlighter kikapcsoló
@@ -61,19 +61,19 @@ const stopProcess = () => {
       highlighterMenu!.style.display = 'none';
       highlighterButton!.style.backgroundColor = '#f8f9fa';
       deleteHighlighterButton!.style.backgroundColor = '#f8f9fa';
-      activeButton = null;
+
       break;
     case 'eraser-button':
       // Radír kikapcsoló
       setEraserModeActive(false);
       stopEraserMode(); // csúnya, de megoldás h ne radírozzon
       eraserMenu!.style.display = 'none';
-      activeButton = null;
+
       break;
     case 'move-button':
       // Mozgatás kikapcsoló
       isMovable = false;
-      activeButton = null;
+
       break;
   }
 };
@@ -200,6 +200,7 @@ const createToolbar = () => {
 
     // A folyamat frissítése az új elrendezéshez
     stopProcess();
+    activeButton = null;
     updateButtonsConfig();
   };
 
