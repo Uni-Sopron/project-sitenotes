@@ -80,26 +80,27 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
 
 const removeHighlight = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
-      const target = event.currentTarget as HTMLElement; // Az aktuális 'mark' elem
-      console.log("belépett a törlésbe");
-      console.log("target", target);
+    const target = event.currentTarget as HTMLElement; // Az aktuális 'mark' elem
+    const parent = target.parentNode;
 
-      // Eltávolítjuk a 'mark' elemet a szövegből
-      // A szülő elem, ahonnan el szeretnénk távolítani a 'mark' elemet
-      const parent = target.parentNode;
-
-      if (parent) {
-          // A markert leválasztjuk és visszahelyezzük a szöveget a szülőbe
-          const textNode = document.createTextNode(target.textContent || ''); // Új szöveg csomópont létrehozása
-          parent.replaceChild(textNode, target); // Leválasztjuk a markert és a szöveget betesszük a szülőbe
+    if (parent) {
+      // Ellenőrizzük, hogy a 'mark' elemnek van-e gyermeke
+      while (target.firstChild) {
+        // Klónozzuk a gyerek elemeket az eredeti formátumuk megőrzéséhez
+        const child = target.firstChild;
+        parent.insertBefore(child, target); // Behelyezzük a szülőbe a kijelölés előtt
       }
+
+      // Végül távolítsuk el az üres 'mark' elemet
+      parent.removeChild(target);
+    }
   } else {
-      console.log("nincs bekapcsolva a törlés");
+    console.log("nincs bekapcsolva a törlés");
   }
 };
 
-export { 
-  startHighlighterMode, 
+export {
+  startHighlighterMode,
   setisdeleteHighlighter,
   stopHighlighterMode,
   setisHighlighterModeActive,
