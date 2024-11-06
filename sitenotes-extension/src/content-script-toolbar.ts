@@ -1,6 +1,6 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive} from './content-script-highlighter';
+import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
@@ -76,12 +76,12 @@ const stopProcess = () => {
       activeButton = null;
       break;
   }
-  };
+};
 
 const setButtonOpacity = (buttonId: string, opacity: number): void => {
   const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
   if (button) {
-      button.style.opacity = `${opacity}`;
+    button.style.opacity = `${opacity}`;
   }
 }
 
@@ -125,10 +125,42 @@ const createToolbar = () => {
 
   document.addEventListener('mousemove', (e) => {
     if (isDragging) {
-      toolbar!.style.left = `${e.clientX - offsetX}px`;
-      toolbar!.style.top = `${e.clientY - offsetY}px`;
+      let newLeft = e.clientX - offsetX;
+      let newTop = e.clientY - offsetY;
+
+      // A toolbar méreteinek figyelembe vétele a forgatás miatt
+      const toolbarRect = toolbar!.getBoundingClientRect();
+      const toolbarWidth = toolbarRect.width;
+      const toolbarHeight = toolbarRect.height;
+
+      // Képernyőméretek
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      // Ellenőrizzük, hogy a toolbar nem megy túl a képernyő szélén
+
+      // Bal oldal
+      if (newLeft < 0) newLeft = 0;
+
+      // Jobb oldal
+      if (newLeft + toolbarWidth > screenWidth) {
+        newLeft = screenWidth - toolbarWidth;
+      }
+
+      // Felső oldal
+      if (newTop < 0) newTop = 0;
+
+      // Alsó oldal
+      if (newTop + toolbarHeight > screenHeight) {
+        newTop = screenHeight - toolbarHeight;
+      }
+
+      // Az új pozíció alkalmazása
+      toolbar!.style.left = `${newLeft}px`;
+      toolbar!.style.top = `${newTop}px`;
     }
-  });
+  }
+  );
 
   document.addEventListener('mouseup', () => {
     isDragging = false;
@@ -137,6 +169,36 @@ const createToolbar = () => {
   const toggleLayout = () => {
     isVertical = !isVertical;
     toolbar!.className = isVertical ? 'rounded-rectangle vertical' : 'rounded-rectangle horizontal';
+    // Frissítsük a toolbar méreteit és pozícióját
+    const toolbarRect = toolbar!.getBoundingClientRect();
+    const toolbarWidth = toolbarRect.width;
+    const toolbarHeight = toolbarRect.height;
+
+    // Képernyőméretek
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // Új pozíció ellenőrzése és korrekciója
+    let newLeft = toolbarRect.left;
+    let newTop = toolbarRect.top;
+
+    // Ellenőrzés a képernyő bal és jobb szélein
+    if (newLeft < 0) newLeft = 0;
+    if (newLeft + toolbarWidth > screenWidth) {
+      newLeft = screenWidth - toolbarWidth;
+    }
+
+    // Ellenőrzés a képernyő felső és alsó szélein
+    if (newTop < 0) newTop = 0;
+    if (newTop + toolbarHeight > screenHeight) {
+      newTop = screenHeight - toolbarHeight;
+    }
+
+    // Új pozíció alkalmazása
+    toolbar!.style.left = `${newLeft}px`;
+    toolbar!.style.top = `${newTop}px`;
+
+    // A folyamat frissítése az új elrendezéshez
     stopProcess();
     updateButtonsConfig();
   };
@@ -161,7 +223,7 @@ const createToolbar = () => {
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter',  onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
+        { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
         { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
@@ -215,7 +277,7 @@ const toggleEraserButton = () => {
     eraserMenu.style.zIndex = '9999';
     eraserMenu.style.borderRadius = '15px';
 
-    
+
     // Radír méret beállító
     const sizeLabel = document.createElement('label');
     sizeLabel.textContent = 'Radír mérete: ';
@@ -227,7 +289,7 @@ const toggleEraserButton = () => {
     sizeSlider.value = '25';
     sizeSlider.oninput = (e) => {
       const value = (e.target as HTMLInputElement).value;
-      setEraserSize(parseInt(value)); 
+      setEraserSize(parseInt(value));
     };
 
     const clearButton = document.createElement('button');
@@ -240,7 +302,7 @@ const toggleEraserButton = () => {
     clearButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
     clearButton.style.color = 'black'; // Szöveg színe
     clearButton.style.border = '1px solid #ddd'; // Határvonal
-    
+
     // Label alá igazítás
     clearButton.style.display = 'block'; // Külön sorba kerül a gomb
     clearButton.style.textAlign = 'left'; // Balra igazított szöveg
@@ -251,21 +313,21 @@ const toggleEraserButton = () => {
     eraserMenu.appendChild(clearButton);
 
     document.body.appendChild(eraserMenu);
-    } else {
+  } else {
     eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
-    }
+  }
 
-    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
-    if (isVertical) {
-      eraserMenu.style.top = `${toolbarRect.bottom - 120}px`; // Y pozíció
-      eraserMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-      eraserMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
-    } else {
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  if (isVertical) {
+    eraserMenu.style.top = `${toolbarRect.bottom - 120}px`; // Y pozíció
+    eraserMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+    eraserMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+  } else {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
     eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
-    }
-    
+  }
+
 
 }
 
@@ -295,7 +357,7 @@ const togglePencilButton = () => {
     sizeSlider.value = '25';
     sizeSlider.oninput = (e) => {
       const value = (e.target as HTMLInputElement).value;
-      setPencilSize(parseInt(value)); 
+      setPencilSize(parseInt(value));
     };
 
     pencilMenu.appendChild(sizeLabel);
@@ -303,18 +365,18 @@ const togglePencilButton = () => {
     document.body.appendChild(pencilMenu);
   } else {
     pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'block' : 'none';
-    }
+  }
 
-    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
-    if (isVertical) {
-      pencilMenu.style.top = `${toolbarRect.top + 140}px`; // Y pozíció
-      pencilMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-      pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
-    } else {
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  if (isVertical) {
+    pencilMenu.style.top = `${toolbarRect.top + 140}px`; // Y pozíció
+    pencilMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+    pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+  } else {
     pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
     pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
-    }
+  }
 }
 
 const toggleHighlighterButton = () => {
@@ -370,21 +432,21 @@ const toggleHighlighterButton = () => {
     highlighterMenu.appendChild(deleteHighlighterButton);
     document.body.appendChild(highlighterMenu);
   }
-  else{
+  else {
     highlighterMenu.style.display = highlighterMenu.style.display === 'none' ? 'block' : 'none';
   }
 
-    // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
-    if (isVertical) {
-      highlighterMenu.style.top = `${toolbarRect.top + 180}px`; // Y pozíció
-      highlighterMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-      highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
-    } else {
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  if (isVertical) {
+    highlighterMenu.style.top = `${toolbarRect.top + 180}px`; // Y pozíció
+    highlighterMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+    highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+  } else {
     highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
     highlighterMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
-    }
-  
+  }
+
 }
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.action === 'toggleToolbar') {
