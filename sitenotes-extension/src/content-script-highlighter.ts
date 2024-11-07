@@ -32,6 +32,7 @@ const getisHighlighterModeActive = () => {
 
 // Function to highlight selected text 
 const highlightSelection = () => {
+  if (!isHighlighterModeActive) return; // If highlighter mode is not active, exit
   const selection = window.getSelection();
   console.log("ez a kiemelés.", selection);
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return; // No selection, exit

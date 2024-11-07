@@ -407,6 +407,7 @@ const toggleHighlighterButton = () => {
     highlighterButton.addEventListener('click', () => {
       // Highlighter mód
       setisdeleteHighlighter(false);
+      setisHighlighterModeActive(true);
       startHighlighterMode();
       highlighterButton!.style.backgroundColor = '#E8F3FF';
       deleteHighlighterButton!.style.backgroundColor = '#f8f9fa';
@@ -425,6 +426,7 @@ const toggleHighlighterButton = () => {
     deleteHighlighterButton.addEventListener('click', () => {
       // Highlighter törlés mód
       setisdeleteHighlighter(true);
+      setisHighlighterModeActive(false)
       highlighterButton!.style.backgroundColor = '#f8f9fa';
       deleteHighlighterButton!.style.backgroundColor = '#E8F3FF';
     });
