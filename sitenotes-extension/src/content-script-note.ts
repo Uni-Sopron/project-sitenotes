@@ -23,18 +23,6 @@ function addNoteToPage() {
     const noteDiv = document.createElement('div');
     noteDiv.id = 'noteDiv';
     noteDiv.className = 'notes';
-    noteDiv.style.position = 'fixed';
-    noteDiv.style.bottom = 'auto';
-    noteDiv.style.right = 'auto';
-    noteDiv.style.width = 'auto';
-    noteDiv.style.height = 'auto';
-    noteDiv.style.backgroundColor = 'lightyellow';
-    noteDiv.style.border = '1px solid black';
-    noteDiv.style.padding = '10px';
-    noteDiv.style.zIndex = '1000';
-    noteDiv.style.boxShadow = '5px 5px 5px rgba(0, 0, 0, 0.5)';
-    noteDiv.style.display = 'flex';
-    noteDiv.style.flexDirection = 'column';
     
     // Append the div to the root
     shadowRoot.appendChild(noteDiv);
@@ -45,12 +33,19 @@ function addNoteToPage() {
     link.rel = 'stylesheet';
     link.href = chrome.runtime.getURL('note.css');
     shadowRoot.appendChild(link);
+
     
     // the divs (they are styled in the CSS file)
     const buttonDiv = document.createElement('div');
     buttonDiv.id = 'buttonDiv';
     noteDiv.appendChild(buttonDiv);
     
+    // COLOR PALETTE
+    const colorPalette = document.createElement('input');
+    colorPalette.type = 'color';
+    colorPalette.style.display = 'none';
+    buttonDiv.appendChild(colorPalette);
+
     const textDiv = document.createElement('div');
     textDiv.id = 'textDiv';
     noteDiv.appendChild(textDiv);
@@ -58,53 +53,55 @@ function addNoteToPage() {
     // START FOR BUTTONS
     // Create an anchor button
     const anchorButton = document.createElement('button');
-    anchorButton.innerText = 'Anchor';
     anchorButton.className = 'Buttons';
+    anchorButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/anchor.svg')}")`;
+    anchorButton.style.opacity = '0.5';
     buttonDiv.appendChild(anchorButton);
     
     let isAnchored = false;
 
     // Add color button
     const colorButton = document.createElement('button');
-    colorButton.innerText = 'Color';
     colorButton.className = 'Buttons';
+    colorButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/palette.svg')}")`;
     buttonDiv.appendChild(colorButton);
-    
-    //Array of colors
-    let colors = ['lightyellow', 'lightblue', 'lightgreen', 'lightcoral', 'lightpink', 'lightgrey'];
-    // index for the array of colors
-    let colorIndex = 0;
     
     // Upload note button
     const uploadButton = document.createElement('button');
-    uploadButton.innerText = 'Upload';
     uploadButton.className = 'Buttons';
+    uploadButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/upload.svg')}")`;
     buttonDiv.appendChild(uploadButton);
     
     // Download note button
     const downloadButton = document.createElement('button');
-    downloadButton.innerText = 'Download';
     downloadButton.className = 'Buttons';
+    downloadButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/download.svg')}")`
     buttonDiv.appendChild(downloadButton);
     
-    // Delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.innerText = 'X';
-    deleteButton.className = 'Buttons';
-    buttonDiv.appendChild(deleteButton);
+    // Remove text button
+    const removeTextButton = document.createElement('button');
+    removeTextButton.className = 'Buttons';
+    removeTextButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/trash.svg')}")`;
+    buttonDiv.appendChild(removeTextButton);
     
     // Editable button for the text area
     const editButton = document.createElement('button');
-    editButton.innerText = 'Readonly';
     editButton.className = 'Buttons';
+    editButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/edit.svg')}")`;
     buttonDiv.appendChild(editButton);
     
     // information button for download and upload
     const infoButton = document.createElement('button');
-    infoButton.innerText = 'Info';
+    infoButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/info.svg')}")`;
     infoButton.className = 'Buttons';
     buttonDiv.appendChild(infoButton);
 
+    // Delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'Buttons';
+    deleteButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/X.svg')}")`;
+    buttonDiv.appendChild(deleteButton);
+    
     // END OF BUTTONS
     
     // Create a text area and title area for user notes
@@ -120,7 +117,8 @@ function addNoteToPage() {
     
     // Make the div draggable
     noteDiv.onmousedown = function(event) {
-        if (isAnchored) return;
+        const target = event.target as HTMLElement;
+        if (isAnchored || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
         
         let shiftX = event.clientX - noteDiv.getBoundingClientRect().left;
         let shiftY = event.clientY - noteDiv.getBoundingClientRect().top;
@@ -149,13 +147,12 @@ function addNoteToPage() {
     // Toggle anchoring on button click
     anchorButton.onclick = function() {
         isAnchored = !isAnchored;
-        anchorButton.innerText = isAnchored ? 'Unanchor' : 'Anchor';
+        anchorButton.style.opacity = isAnchored ? '1' : '0.5';
     };
     
-    // Cahnge the color of the note div
+    // Change the color of the note div
     colorButton.onclick = function() {
-        colorIndex = (colorIndex + 1) % colors.length;
-        noteDiv.style.backgroundColor = colors[colorIndex];
+       colorPalette.style.display = colorPalette.style.display === 'none' ? 'block' : 'none';
     };
 
     // handle download button
@@ -202,11 +199,23 @@ function addNoteToPage() {
     editButton.onclick = function() {
         const isEditable = textArea.readOnly;
         textArea.readOnly = titleArea.readOnly = !isEditable;
-        editButton.innerText = isEditable ? 'Readonly' : 'Editable';
+        editButton.style.opacity = isEditable ? '1' : '0.5';
     };
 
     // info alert for development, so everybody understands
     infoButton.onclick = function() {
-        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tX: Delete the note. \n\n\tReadonly: Make the note editable or readonly.');
+        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the text from the title and text area. \n\n\tX: Delete the note. \n\n\tReadonly: Make the note editable or readonly.');
+    }
+
+    // color palette input
+    colorPalette.onchange = function() {
+        noteDiv.style.backgroundColor = colorPalette.value
+        colorPalette.style.display = 'none';
+    }
+
+    // handle text remove
+    removeTextButton.onclick = function() {
+        titleArea.value = '';
+        textArea.value = '';
     }
 }

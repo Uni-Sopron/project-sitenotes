@@ -19,15 +19,17 @@
 .Buttons{
     border-radius: 5px;
     border: 1px solid transparent;
-    margin-left: 10px;
+    margin: 3px;
     padding: 0.6em 1.2em;
-    background-color: aqua;
     cursor: pointer;
     transition: border-color 0.25s;
+    background: no-repeat center center;
+    width: 32px;
+    height: 32px;
 }
 
 .Buttons:hover {
-    border-color: grey;
+    border-color: black;
 }
 
 #titleArea{
@@ -44,3 +46,20 @@
     justify-content: left;
     align-items: left;
 }
+
+.notes{
+    border-radius: 10px;
+    position: fixed;
+    bottom: auto;
+    right: auto;
+    width: auto;
+    height: auto;
+    background-color: lightyellow;
+    border: 1px solid black;
+    padding: 10px;
+    z-index: 1000;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+

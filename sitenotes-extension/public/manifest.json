@@ -14,7 +14,7 @@
     "web_accessible_resources": [
       {
         "resources": ["manage-notes.html", "assets/contentScript.js", "assets/contentScriptNote.js",
-        "toolbar-icons/*", "toolbar.css", "note.css" ],
+        "toolbar-icons/*", "toolbar.css", "note.css", "note-icons/*"],
         "matches": ["<all_urls>"]
       }
     ],
