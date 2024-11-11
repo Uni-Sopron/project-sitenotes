@@ -50,6 +50,8 @@
 .notes{
     border-radius: 10px;
     position: fixed;
+    top: 50px;
+    left: 50px;
     bottom: auto;
     right: auto;
     width: auto;
@@ -61,6 +63,5 @@
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    overflow: auto;
 }
 

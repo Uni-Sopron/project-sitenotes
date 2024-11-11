@@ -22,8 +22,6 @@ function addNoteToPage() {
     // Create a div element 
     const noteDiv = document.createElement('div');
     noteDiv.id = 'noteDiv';
-    noteDiv.style.top = '50px';
-    noteDiv.style.left = '50px';
     noteDiv.className = 'notes';
     
     // Append the div to the root
@@ -120,22 +118,34 @@ function addNoteToPage() {
     // Make the div draggable
     noteDiv.onmousedown = function(event) {
         const target = event.target as HTMLElement;
+    
         if (isAnchored || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-        
-        let shiftX = event.clientX - noteDiv.getBoundingClientRect().left;
-        let shiftY = event.clientY - noteDiv.getBoundingClientRect().top;
-        
+    
+        const shiftX = event.clientX - noteDiv.getBoundingClientRect().left;
+        const shiftY = event.clientY - noteDiv.getBoundingClientRect().top;
+    
         function moveAt(pageX: number, pageY: number) {
-            noteDiv.style.left = pageX - shiftX + 'px';
-            noteDiv.style.top = pageY - shiftY + 'px';
+            const rect = noteDiv.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+    
+            let newX = pageX - shiftX;
+            let newY = pageY - shiftY;
+    
+            // Check if it goes out of the viewport
+            newX = Math.max(0, Math.min(newX, viewportWidth - rect.width));
+            newY = Math.max(0, Math.min(newY, viewportHeight - rect.height));
+
+            noteDiv.style.left = `${newX}px`;
+            noteDiv.style.top = `${newY}px`;
         }
-        
+    
         function onMouseMove(event: MouseEvent) {
             moveAt(event.pageX, event.pageY);
         }
-        
+
         document.addEventListener('mousemove', onMouseMove);
-        
+    
         noteDiv.onmouseup = function() {
             document.removeEventListener('mousemove', onMouseMove);
             noteDiv.onmouseup = null;
@@ -144,7 +154,7 @@ function addNoteToPage() {
     
     noteDiv.ondragstart = function() {
         return false;
-    };
+    }
     
     // Toggle anchoring on button click
     anchorButton.onclick = function() {
@@ -184,10 +194,23 @@ function addNoteToPage() {
             const reader = new FileReader();
             reader.onload = function() {
                 const content = reader.result as string;
-                const [title, note] = content.split('\n\n');
-                titleArea.value = title.split(': ')[1];
-                textArea.value = note.split(': ')[1];
-            };
+
+                let title = "";
+                let note = "";
+
+                if (content.includes("Title:") && content.includes("Note:")) {
+                    const [titleLine, noteLine] = content.split('\n\n');
+                    title = titleLine.split(': ')[1] || "";
+                    note = noteLine.split(': ')[1] || "";
+                } else {
+                    // If it doesn't follow the format, append everything to the text area
+                    note = content;
+                }
+
+                // Assign values 
+                titleArea.value = title;
+                textArea.value = note;
+                };
             reader.readAsText(file);
         };
         fileInput.click();
