@@ -22,6 +22,8 @@ function addNoteToPage() {
     // Create a div element 
     const noteDiv = document.createElement('div');
     noteDiv.id = 'noteDiv';
+    noteDiv.style.top = '50px';
+    noteDiv.style.left = '50px';
     noteDiv.className = 'notes';
     
     // Append the div to the root
@@ -148,6 +150,7 @@ function addNoteToPage() {
     anchorButton.onclick = function() {
         isAnchored = !isAnchored;
         anchorButton.style.opacity = isAnchored ? '1' : '0.5';
+        noteDiv.style.position = isAnchored ? 'absolute' : 'fixed';
     };
     
     // Change the color of the note div
@@ -218,4 +221,6 @@ function addNoteToPage() {
         titleArea.value = '';
         textArea.value = '';
     }
+
+    console.log(noteDiv.getClientRects());
 }
