@@ -116,11 +116,14 @@ function addNoteToPage() {
     textDiv.appendChild(textArea);
     
     // Make the div draggable
+    let isDragging = false;
     noteDiv.onmousedown = function(event) {
         const target = event.target as HTMLElement;
     
         if (isAnchored || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-    
+
+        isDragging = true;
+
         const shiftX = event.clientX - noteDiv.getBoundingClientRect().left;
         const shiftY = event.clientY - noteDiv.getBoundingClientRect().top;
     
@@ -141,15 +144,18 @@ function addNoteToPage() {
         }
     
         function onMouseMove(event: MouseEvent) {
-            moveAt(event.pageX, event.pageY);
+            if (isDragging && !isAnchored) {
+                moveAt(event.pageX, event.pageY);
+            }
         }
 
         document.addEventListener('mousemove', onMouseMove);
     
-        noteDiv.onmouseup = function() {
+        document.addEventListener('mouseup', function onMouseUp() {
+            isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
-            noteDiv.onmouseup = null;
-        };
+            document.removeEventListener('mouseup', onMouseUp);
+        });
     };
     
     noteDiv.ondragstart = function() {
