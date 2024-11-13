@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "SiteNotes",
-    "version": "0.0.4",
+    "version": "0.2.1",
     "action": {
       "default_popup": "index.html",
       "default_icon": "icons/placeholder.png"
@@ -13,8 +13,18 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["manage-notes.html", "assets/contentScript.js", "assets/contentScriptNote.js",
-        "toolbar-icons/*", "toolbar.css", "note.css", "note-icons/*"],
+        "resources": [
+          "manage-notes.html", 
+          "assets/contentScriptToolbar.js", 
+          "assets/contentScriptHighlighter.js", 
+          "assets/contentScriptDraw.js",
+          "assets/contentScriptIMG.js",
+          "assets/contentScript.js", 
+          "assets/contentScriptNote.js",
+          "note.css", 
+          "note-icons/*",
+          "toolbar-icons/*", 
+          "toolbar.css" ],
         "matches": ["<all_urls>"]
       }
     ],
@@ -23,6 +33,15 @@
       "matches": ["<all_urls>"],
       "js": ["assets/contentScript.js", "assets/contentScriptNote.js"]
     }
+      {
+        "matches": ["<all_urls>"],
+        "js": ["assets/contentScriptToolbar.js",
+               "assets/contentScriptHighlighter.js",
+               "assets/contentScriptDraw.js",
+               "assets/contentScriptIMG.js",
+               "assets/contentScript.js", 
+               "assets/contentScriptNote.js",
+               "assets/manageNotes.js"]
+      }
     ]
   }
-  

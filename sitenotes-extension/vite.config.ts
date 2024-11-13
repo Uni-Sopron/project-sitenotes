@@ -12,6 +12,11 @@ export default defineConfig({
         main: 'index.html',
         contentScript: 'src/content-script.ts',
         contentScriptNote: 'src/content-script-note.ts',
+        contentScriptToolbar: 'src/content-script-toolbar.ts',
+        contentScriptHighlighter: 'src/content-script-highlighter.ts',
+        contentScriptDraw: 'src/content-script-draw.ts',
+        contentScriptIMG: 'src/content-script-img.ts',
+        manageNotes: 'src/manage-notes.ts',
       },
       output: {
         entryFileNames: 'assets/[name].js',
@@ -20,4 +25,5 @@ export default defineConfig({
       },
     },
   },
+
 })
