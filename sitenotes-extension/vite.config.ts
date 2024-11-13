@@ -6,9 +6,12 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
+    minify: false,
     rollupOptions: {
       input: {
         main: 'index.html',
+        contentScript: 'src/content-script.ts',
+        contentScriptNote: 'src/content-script-note.ts',
         contentScriptToolbar: 'src/content-script-toolbar.ts',
         contentScriptHighlighter: 'src/content-script-highlighter.ts',
         contentScriptDraw: 'src/content-script-draw.ts',
