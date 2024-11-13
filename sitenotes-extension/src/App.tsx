@@ -1,64 +1,86 @@
-import { useState } from 'react'
-import './App.css'
+import React, { useState } from 'react';
+import './App.css';
 
-function App() {
-  const [Notes, setNotes] = useState(false); /* ha true akkor megjelenítettek azaz áthúzott, ha false akkor nem */
-  const [Tools, setTools] = useState(false); /* ha false, akkor megjeleníthető, ha true akkor teljesen eltűnik */
+const App: React.FC = () => {
+  const [notesVisible, setNotesVisible] = useState<boolean>(false);
+  const [toolsVisible, setToolsVisible] = useState<boolean>(true);
 
-   async function showNotes(){
-    Notes ? setNotes(false) : setNotes(true);
-    /* ide kód (pl oldal megjelenítése másik scriptnél), lehet nem async */
-  }
+  const showNotes = () => {
+    setNotesVisible((prev) => !prev);
+  };
 
-  async function showTools(){
-    Tools ? setTools(false) : setTools(true);
-    /* ide kód (pl oldal megjelenítése másik scriptnél), lehet nem async */
-  }
+  const showTools = () => {
+    setToolsVisible((prev) => !prev);
 
-  function openManageNotesPage() {
-    window.open('manage-notes.html', '_blank'); // Opens the page in a new tab in any browser
-  }
+    // Send a message to the content script to toggle the toolbar
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleToolbar' }, (response) => {
+          if (response?.status === 'success') {
+            console.log('Toolbar toggled');
+          }
+        });
+      }
+    });
+  };
 
+  const openManageNotesPage = () => {
+    window.open('manage-notes.html', '_blank');
+  };
+  
+  //took out toolbar from here as you can see
   return (
-  <>
-    <table className='buttons'>
-      <tr>
-        <td>
-          <button><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note"></img></button>
-        </td>
-        <td>
-          <button onClick={showNotes}><img src={Notes ? "/popup-icons/pen-solid.svg" : "/popup-icons/message-solid.svg"} alt={Notes ? "Hide Notes" : "Show Notes"}/** jelenleg nincs hamis kép(azaz eltakaró) */></img></button>
-        </td>
-        <td>
-          <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer"></img></button>
-        </td>
-        <td>
-          <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes"/></button>
-        </td>
-        <td>
-          <button onClick={showTools}><img src={Tools ? "/popup-icons/message-solid.svg": "/popup-icons/pen-solid.svg"} alt={Tools ? "Hide Tools": "Show Tools"}/** Nincs itt se másik kép (lehet rossz a kép jelenleg) */></img></button>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <p>Add Notes</p>
-        </td>
-        <td>
-          <p>{Notes ? "Hide Notes": "Show Notes"}</p>
-        </td>
-        <td>
-          <p>Iconizer</p>
-        </td>
-        <td>
-          <p>All Notes</p>
-        </td>
-        <td>
-          <p>{Tools ? "Show Tools" : "Hide Tools"}</p>
-        </td>
-      </tr>
-    </table>
-  </>
-  )
+    <div className="popup-content">
+      <table className='buttons'>
+        <tbody>
+          <tr>
+            <td>
+              <button><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note" /></button>
+            </td>
+            <td>
+              <button onClick={showNotes}>
+                <img
+                  src={notesVisible ? "/popup-icons/pen-solid.svg" : "/popup-icons/message-solid.svg"}
+                  alt={notesVisible ? "Hide Notes" : "Show Notes"}
+                />
+              </button>
+            </td>
+            <td>
+              <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer" /></button>
+            </td>
+            <td>
+              <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes" /></button>
+            </td>
+            <td>
+              <button onClick={showTools}>
+                <img
+                  src={toolsVisible ? "/popup-icons/message-solid.svg" : "/popup-icons/pen-solid.svg"}
+                  alt={toolsVisible ? "Hide Tools" : "Show Tools"}
+                />
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Add Notes</p>
+            </td>
+            <td>
+              <p>{notesVisible ? "Hide Notes" : "Show Notes"}</p>
+            </td>
+            <td>
+              <p>Iconizer</p>
+            </td>
+            <td>
+              <p>All Notes</p>
+            </td>
+            <td>
+              <p>{toolsVisible ? "Hide Tools" : "Show Tools"}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-export default App
+export default App;
