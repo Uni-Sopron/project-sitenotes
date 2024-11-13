@@ -19,7 +19,6 @@
           "assets/contentScriptHighlighter.js", 
           "assets/contentScriptDraw.js",
           "assets/contentScriptIMG.js",
-          "assets/contentScript.js", 
           "assets/contentScriptNote.js",
           "note.css", 
           "note-icons/*",
@@ -31,15 +30,14 @@
     "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["assets/contentScript.js", "assets/contentScriptNote.js"]
-    }
+      "js": ["assets/contentScriptNote.js"]
+    },
       {
         "matches": ["<all_urls>"],
         "js": ["assets/contentScriptToolbar.js",
                "assets/contentScriptHighlighter.js",
                "assets/contentScriptDraw.js",
                "assets/contentScriptIMG.js",
-               "assets/contentScript.js", 
                "assets/contentScriptNote.js",
                "assets/manageNotes.js"]
       }
