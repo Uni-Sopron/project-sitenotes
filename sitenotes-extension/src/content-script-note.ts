@@ -178,8 +178,17 @@ function addNoteToPage(
     textDiv.appendChild(textArea);
 
     // Save note data in IndexedDB when the user starts typing
-    titleArea.addEventListener('input', () => saveNoteData(titleArea, textArea, noteDiv));
-    textArea.addEventListener('input', () => saveNoteData(titleArea, textArea, noteDiv));
+    titleArea.addEventListener('input', () => {
+        const currentColor = noteDiv.style.backgroundColor;
+        const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
+        saveNoteData(titleArea, textArea, noteDiv, currentPosition, currentColor);
+    });
+    
+    textArea.addEventListener('input', () => {
+        const currentColor = noteDiv.style.backgroundColor;
+        const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
+        saveNoteData(titleArea, textArea, noteDiv, currentPosition, currentColor);
+    });
     
     // Make the div draggable
     let isDragging = false;
@@ -207,6 +216,11 @@ function addNoteToPage(
 
             noteDiv.style.left = `${newX}px`;
             noteDiv.style.top = `${newY}px`;
+
+            // Save note data with new position as it's being moved only if there is text inside title or textarea
+            if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
+                saveNoteData(titleArea, textArea, noteDiv, { x: newX, y: newY }, noteDiv.style.backgroundColor);
+            }
         }
     
         function onMouseMove(event: MouseEvent) {
@@ -310,6 +324,11 @@ function addNoteToPage(
     colorPalette.onchange = function() {
         noteDiv.style.backgroundColor = colorPalette.value
         colorPalette.style.display = 'none';
+
+        // Save note data including the new color
+        if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
+            saveNoteData(titleArea, textArea, noteDiv, noteDiv.getBoundingClientRect(), noteDiv.style.backgroundColor);
+        };
     }
 
     // handle text remove
@@ -323,13 +342,20 @@ function addNoteToPage(
 
 // INDEXEDDB HERE WE GO
 
-async function saveNoteData(titleArea: HTMLTextAreaElement, textArea: HTMLTextAreaElement, noteDiv: HTMLElement) {
+async function saveNoteData(
+    titleArea: HTMLTextAreaElement, 
+    textArea: HTMLTextAreaElement, 
+    noteDiv: HTMLElement, 
+    position: { x: number; y: number }, 
+    color: string
+) {
+    // Get the note data from the title, text, color, and position
     const noteData = {
         id: parseInt(noteDiv.id.split('-')[1]), // Extract the ID from noteDiv's ID
         title: titleArea.value,
         text: textArea.value,
-        color: noteDiv.style.backgroundColor,
-        position: { x: noteDiv.offsetLeft, y: noteDiv.offsetTop },
+        color: color, // Use the passed color
+        position: position, // Use the passed position
     };
 
     const url = window.location.href;
