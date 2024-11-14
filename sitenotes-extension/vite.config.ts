@@ -16,6 +16,8 @@ export default defineConfig({
         contentScriptDraw: 'src/content-script-draw.ts',
         contentScriptIMG: 'src/content-script-img.ts',
         manageNotes: 'src/manage-notes.ts',
+        database: 'src/database.ts',
+        background: 'src/background.ts',
       },
       output: {
         entryFileNames: 'assets/[name].js',

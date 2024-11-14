@@ -1,32 +1,93 @@
+import { saveData, getData, openDatabase, STORE_NOTES } from './database';
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
-      if (message.action === 'addNote') {
-        addNoteToPage();
-        sendResponse({ status: 'success' });
-      }
+        if (message.action === 'loadNotes') {
+            loadNotes();
+            sendResponse({ status: 'success' });
+        }
+        if (message.action === 'addNote') {
+            addNoteToPage();
+            sendResponse({ status: 'success' });
+        }
+        if (message.action === 'updateNote') {
+            updateNoteInDB(message.noteId, message.updatedData);
+            sendResponse({ status: 'success' });
+        }
+        if (message.action === 'deleteNote') {
+            deleteNoteFromDB(message.noteId);
+            sendResponse({ status: 'success' });
+        }
     } catch (error: any) {
-      console.error('Error in adding note:', error);
-      sendResponse({ status: 'failure', message: error.message });
+        console.error('Error in managing note:', error);
+        sendResponse({ status: 'failure', message: error.message });
     }
-    return true; // Always return true to keep the message channel open
-  });
+    return true; // Keep the message channel open
+});
 
-function addNoteToPage() {
+// Load notes on page load - it's not working
+// document.addEventListener('DOMContentLoaded', () => {
+//     console.log('DOM fully loaded and parsed');
+//     loadNotes();
+// });
+
+const loadNotes = async () => {
+    const url = window.location.href;
+    const notes = await getAllNotesForURL(url);
+
+    // Render each note on the page
+    notes.forEach(note => {
+        addNoteToPage(note.id, note.title, note.text, note.color, note.position);
+    });
+};
+
+// Retrieve all notes for the current URL
+async function getAllNotesForURL(url: string) {
+    console.log('Loading notes for URL:', url);
+    const db = await openDatabase();
+    const transaction = db.transaction(STORE_NOTES, 'readonly');
+    const store = transaction.objectStore(STORE_NOTES);
+
+    const notes: any[] = [];
+    return new Promise<any[]>((resolve, reject) => {
+        const request = store.openCursor();
+        request.onsuccess = (event: any) => {
+            const cursor = event.target.result;
+            if (cursor) {
+                const note = cursor.value;
+                if (note.url === url) {
+                    notes.push(note);
+                }
+                cursor.continue();
+            } else {
+                resolve(notes);
+            }
+        };
+        request.onerror = () => {
+            reject(new Error('Error fetching notes for URL'));
+        };
+    });
+}
+
+function addNoteToPage(
+    noteId?: number,
+    title: string = '',
+    text: string = '',
+    color: string = 'lightyellow',
+    position: { x: number; y: number } = { x: 100, y: 100 }
+) {
     const shadowHost = document.createElement('div');
-    shadowHost.id = 'shadowHost';
+    shadowHost.id = `shadowHost-${noteId || Date.now()}`;
     document.body.appendChild(shadowHost);
     
-    // Attach shadowRoot
     const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
-    
-    // Create a div element 
     const noteDiv = document.createElement('div');
-    noteDiv.id = 'noteDiv';
+    noteDiv.id = `noteDiv-${noteId || Date.now()}`;
     noteDiv.className = 'notes';
-    
-    // Append the div to the root
+    noteDiv.style.backgroundColor = color;
+    noteDiv.style.left = `${position.x}px`;
+    noteDiv.style.top = `${position.y}px`;
     shadowRoot.appendChild(noteDiv);
-    console.log("Div appended");
     
     // Append CSS file
     const link = document.createElement('link');
@@ -34,7 +95,6 @@ function addNoteToPage() {
     link.href = chrome.runtime.getURL('note.css');
     shadowRoot.appendChild(link);
 
-    
     // the divs (they are styled in the CSS file)
     const buttonDiv = document.createElement('div');
     buttonDiv.id = 'buttonDiv';
@@ -107,13 +167,19 @@ function addNoteToPage() {
     // Create a text area and title area for user notes
     const titleArea = document.createElement('textarea');
     titleArea.id = 'titleArea';
+    titleArea.value = title;
     titleArea.placeholder = 'Title';
     textDiv.appendChild(titleArea);
-    
+
     const textArea = document.createElement('textarea');
     textArea.id = 'textArea';
+    textArea.value = text;
     textArea.placeholder = 'Enter your note here';
     textDiv.appendChild(textArea);
+
+    // Save note data in IndexedDB when the user starts typing
+    titleArea.addEventListener('input', () => saveNoteData(titleArea, textArea, noteDiv));
+    textArea.addEventListener('input', () => saveNoteData(titleArea, textArea, noteDiv));
     
     // Make the div draggable
     let isDragging = false;
@@ -223,8 +289,9 @@ function addNoteToPage() {
     }
     
     // handle delete button
-    deleteButton.onclick = function() {
+    deleteButton.onclick = function () {
         shadowHost.remove();
+        deleteNoteFromDB(Number(noteDiv.id));  // Remove from DB as well
     };
 
     // handle editing button
@@ -234,7 +301,7 @@ function addNoteToPage() {
         editButton.style.opacity = isEditable ? '1' : '0.5';
     };
 
-    // info alert for development, so everybody understands
+    // info alert for development, so everybody 👃
     infoButton.onclick = function() {
         alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the text from the title and text area. \n\n\tX: Delete the note. \n\n\tReadonly: Make the note editable or readonly.');
     }
@@ -252,4 +319,56 @@ function addNoteToPage() {
     }
 
     console.log(noteDiv.getClientRects());
+}
+
+// INDEXEDDB HERE WE GO
+
+async function saveNoteData(titleArea: HTMLTextAreaElement, textArea: HTMLTextAreaElement, noteDiv: HTMLElement) {
+    const noteData = {
+        id: parseInt(noteDiv.id.split('-')[1]), // Extract the ID from noteDiv's ID
+        title: titleArea.value,
+        text: textArea.value,
+        color: noteDiv.style.backgroundColor,
+        position: { x: noteDiv.offsetLeft, y: noteDiv.offsetTop },
+    };
+
+    const url = window.location.href;
+    await createOrUpdateNote(url, noteData);
+}
+
+async function createOrUpdateNote(url: string, noteData: { id: number; title: string; text: string; color: string; position: { x: number; y: number }; }) {
+    const note = {
+        id: noteData.id || Date.now(),
+        title: noteData.title,
+        text: noteData.text,
+        color: noteData.color,
+        position: noteData.position,
+        timestamp: {
+            created: noteData.id ? undefined : new Date().toISOString(),
+            modified: new Date().toISOString(),
+        },
+        url: url,
+    };
+
+    await saveData(STORE_NOTES, note);
+}
+
+async function updateNoteInDB(noteId: number, updatedData: { title: string; text: string; color: string; position: { x: number; y: number }; }) {
+    const note = await getData(STORE_NOTES, noteId.toString());
+    if (note) {
+        note.title = updatedData.title;
+        note.text = updatedData.text;
+        note.color = updatedData.color;
+        note.position = updatedData.position;
+        note.timestamp.modified = new Date().toISOString();  // Update the modified timestamp
+        await saveData(STORE_NOTES, note);
+    }
+}
+
+// Not implemented fully rn dw
+async function deleteNoteFromDB(noteId: number) {
+    const db = await openDatabase();
+    const transaction = db.transaction(STORE_NOTES, 'readwrite');
+    const store = transaction.objectStore(STORE_NOTES);
+    store.delete(noteId);
 }
