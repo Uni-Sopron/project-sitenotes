@@ -107,7 +107,7 @@ Drawings (and rubber):
     - exact size and color
     - can be cleared with a rubber
 
-Image:
+**Image** ⏳:
     - exact location on window
     - exact size and direction
 
@@ -115,10 +115,11 @@ Marker:
     - exact text that was marked (make sure they are applied on reload too)
         - do not mark every single instance of that text, just the text that was marked
 
-Note:
+**Note** ✅:
     - exact location on window
     - exact color that was applied (RGB)
     - exact title and text inside note
+    - modification timestamp
 
 OH! and creation and modification timestamps except toolbar (maybe? lol). Silly me.  
 
