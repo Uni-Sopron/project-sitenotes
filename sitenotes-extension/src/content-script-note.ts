@@ -35,10 +35,16 @@ const loadNotes = async () => {
     const url = window.location.href;
     const notes = await getAllNotesForURL(url);
 
-    // Render each note on the page
-    notes.forEach(note => {
-        addNoteToPage(note.id, note.title, note.text, note.color, note.position);
-    });
+    // Render each note on the page, remove empty notes
+    for (const note of notes) {
+        if (note.title.trim() === '' && note.text.trim() === '') {
+            // Delete empty notes from the database
+            await deleteNoteFromDB(note.id);
+        } else {
+            // Render non-empty notes on the page
+            addNoteToPage(note.id, note.title, note.text, note.color, note.position);
+        }
+    }
 };
 
 // Retrieve all notes for the current URL
@@ -156,11 +162,11 @@ function addNoteToPage(
     infoButton.className = 'Buttons';
     buttonDiv.appendChild(infoButton);
 
-    // Delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'Buttons';
-    deleteButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/X.svg')}")`;
-    buttonDiv.appendChild(deleteButton);
+    // Delete button - should be close button instead
+    const closeButton = document.createElement('button');
+    closeButton.className = 'Buttons';
+    closeButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/X.svg')}")`;
+    buttonDiv.appendChild(closeButton);
     
     // END OF BUTTONS
     
@@ -302,11 +308,55 @@ function addNoteToPage(
         fileInput.click();
     }
     
-    // handle delete button
-    deleteButton.onclick = function () {
+    // NOTE TO DEVS: rewritten to close button instead that replaces note with a small icon (not a delete button)
+    // ALSO IDEA: Make the icon draggable and reopen the note when clicking it
+    // ALSO ALSO IDEA: When opening page, check if there are any closed notes and display them as icons 
+        // (probably not user friendly and could lose track of notes)
+    // Handle close button
+    closeButton.onclick = function () {
+        const noteId = Number(noteDiv.id.split('-')[1]); // Extract note ID
+    
+        // Save the note's current position
+        const position = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
+    
+        // Create a small icon representing the closed note
+        const closedIcon = document.createElement('div');
+        closedIcon.className = 'closed-note-icon';
+        closedIcon.style.backgroundColor = noteDiv.style.backgroundColor;
+        closedIcon.style.position = 'absolute';
+        closedIcon.style.left = `${position.x}px`;
+        closedIcon.style.top = `${position.y}px`;
+        closedIcon.style.zIndex = '9999'; // Make sure it's on top of other elements
+        closedIcon.textContent = '📝'; // Icon representing the note
+        document.body.appendChild(closedIcon);
+    
+        // Remove the full note from the page
         shadowHost.remove();
-        deleteNoteFromDB(Number(noteDiv.id));  // Remove from DB as well
+    
+        // Save "closed" state and position in the database
+        updateNoteInDB(noteId, {
+            title: titleArea.value,
+            text: textArea.value,
+            color: noteDiv.style.backgroundColor,
+            position: position,
+            closed: true, // Mark note as closed
+        });
+    
+        // Reopen the note when clicking the icon
+        closedIcon.onclick = function () {
+            // Remove the icon and recreate the full note at the same position
+            closedIcon.remove();
+            addNoteToPage(
+                noteId,
+                titleArea.value,
+                textArea.value,
+                noteDiv.style.backgroundColor,
+                position // Pass the saved position here
+            );
+        };
     };
+    
+    
 
     // handle editing button
     editButton.onclick = function() {
@@ -317,7 +367,7 @@ function addNoteToPage(
 
     // info alert for development, so everybody 👃
     infoButton.onclick = function() {
-        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the text from the title and text area. \n\n\tX: Delete the note. \n\n\tReadonly: Make the note editable or readonly.');
+        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the note. \n\n\tX: Close the note. \n\n\tReadonly: Make the note editable or readonly.');
     }
 
     // color palette input
@@ -331,11 +381,18 @@ function addNoteToPage(
         };
     }
 
-    // handle text remove
-    removeTextButton.onclick = function() {
+    // This is the delete button now instead
+    removeTextButton.onclick = function () {
         titleArea.value = '';
         textArea.value = '';
-    }
+
+        // Check if note is empty after clearing (probably could have written elsehow but this works as well idc I'm lazy)
+        const noteId = Number(noteDiv.id.split('-')[1]); // Extract note ID
+        if (titleArea.value.trim() === '' && textArea.value.trim() === '') {
+            shadowHost.remove(); // Remove note from the page
+            deleteNoteFromDB(noteId); // Remove note from database
+        }
+    };
 
     console.log(noteDiv.getClientRects());
 }
@@ -379,14 +436,24 @@ async function createOrUpdateNote(url: string, noteData: { id: number; title: st
     await saveData(STORE_NOTES, note);
 }
 
-async function updateNoteInDB(noteId: number, updatedData: { title: string; text: string; color: string; position: { x: number; y: number }; }) {
+async function updateNoteInDB(
+    noteId: number,
+    updatedData: {
+        title: string;
+        text: string;
+        color: string;
+        position: { x: number; y: number };
+        closed?: boolean;
+    }
+) {
     const note = await getData(STORE_NOTES, noteId.toString());
     if (note) {
         note.title = updatedData.title;
         note.text = updatedData.text;
         note.color = updatedData.color;
         note.position = updatedData.position;
-        note.timestamp.modified = new Date().toISOString();  // Update the modified timestamp
+        note.closed = updatedData.closed || false; // Default to false if not provided
+        note.timestamp.modified = new Date().toISOString();
         await saveData(STORE_NOTES, note);
     }
 }

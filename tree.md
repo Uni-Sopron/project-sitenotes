@@ -1,11 +1,11 @@
-**Version "0.2.2"**  
+**Version "0.2.4"**  
 - 0: the project is not MVP yet  
 - 2: two main working functionalities: toolbar, notes  
 - 2: 
     - the site is set and stylised and implementing functionalities for listing links is next
-    - working notes save - load, still have to fix that moving note and recoloring is also meant to be saved
-        - explination: only saves when text is written inside the bad boi
-        - delete ain't workin dw bout it imma do that later
+    - working notes save - load
+        - might save text box sizes too later
+    - x on note iconizes and trash button deletes completely (removing text would be two cntrl+A backspace so why have two deletes)
 
 ## Tree
 Can't be bothered to edit this properly for preview so just look at the edit version please  
