@@ -1,5 +1,3 @@
-import { saveData, getData, openDatabase, STORE_NOTES } from './database';
-
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
         if (message.action === 'loadNotes') {
@@ -50,6 +48,7 @@ const loadNotes = async () => {
 // Retrieve all notes for the current URL
 async function getAllNotesForURL(url: string) {
     console.log('Loading notes for URL:', url);
+    const { openDatabase, STORE_NOTES } = await import('./database');
     const db = await openDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readonly');
     const store = transaction.objectStore(STORE_NOTES);
@@ -420,6 +419,7 @@ async function saveNoteData(
 }
 
 async function createOrUpdateNote(url: string, noteData: { id: number; title: string; text: string; color: string; position: { x: number; y: number }; }) {
+    const { saveData, STORE_NOTES } = await import('./database');
     const note = {
         id: noteData.id || Date.now(),
         title: noteData.title,
@@ -446,6 +446,7 @@ async function updateNoteInDB(
         closed?: boolean;
     }
 ) {
+    const { getData, saveData, STORE_NOTES } = await import('./database');
     const note = await getData(STORE_NOTES, noteId.toString());
     if (note) {
         note.title = updatedData.title;
@@ -460,6 +461,7 @@ async function updateNoteInDB(
 
 // Not implemented fully rn dw
 async function deleteNoteFromDB(noteId: number) {
+    const { openDatabase, STORE_NOTES } = await import('./database');
     const db = await openDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readwrite');
     const store = transaction.objectStore(STORE_NOTES);

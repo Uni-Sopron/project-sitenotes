@@ -1,3 +1,5 @@
+// import { saveImage } from "./database";
+
 const handleImageUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -13,7 +15,7 @@ const handleImageUpload = () => {
                 const img = new Image(); // Create an Image object to get the original size
                 img.src = e.target?.result as string;
 
-                img.onload = () => {
+                img.onload = async () => {
                     const maxWidth = 150; // Max width for the image
                     const maxHeight = 150; // Max height for the image
                     let width = img.width;
@@ -50,7 +52,7 @@ const handleImageUpload = () => {
                     resizedImg.style.objectFit = 'contain'; // Contain to avoid distortion
                     resizedImg.style.cursor = 'move';
 
-                    // Create resize handles
+                    // Create resize handles (code to make it resizable)
                     const resizeHandle = document.createElement('div');
                     resizeHandle.style.width = '10px';
                     resizeHandle.style.height = '10px';
@@ -62,7 +64,7 @@ const handleImageUpload = () => {
                     resizeHandle.style.display = 'none'; // Initially hidden
                     wrapper.appendChild(resizeHandle);
 
-                    // Create menu for image actions
+                    // Create menu for image actions (delete, resize, etc.)
                     const menu = document.createElement('div');
                     menu.style.position = 'absolute';
                     menu.style.backgroundColor = 'white';
@@ -180,13 +182,26 @@ const handleImageUpload = () => {
                         isDraggingImage = false;
                         isResizing = false;
                     });
+
+                    // After the image is loaded and resized, save the image to IndexedDB
+                    const imageData = {
+                        id: Date.now(), // Unique ID for the image
+                        src: img.src, // Base64 string of the image
+                        position: { x: 200, y: 200 }, // Example position
+                        size: { width, height }, // Resized dimensions
+                    };
+
+                    const { saveImage } = await import('./database');
+                    saveImage(window.location.href, imageData); // Save the image to IndexedDB
                 };
             };
-            reader.readAsDataURL(file);
+
+            reader.readAsDataURL(file); // Read the file as a data URL (base64 encoding)
         }
     };
 
-    input.click(); 
+    document.body.appendChild(input);
+    input.click(); // Trigger the file input dialog
 };
 
 export { handleImageUpload };

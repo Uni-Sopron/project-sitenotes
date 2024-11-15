@@ -91,6 +91,10 @@ Using existing functionalities:
 - public/toolbar.css
 - icon folders inside public folders
 
+## Issues during multiple saves
+
+Vite doesn't like js's with leftover imports and exports.
+
 ## How things are meant to be saved
 
 What we are trying to achieve is to even upon reload, every change stays where they were the last time.  
@@ -110,6 +114,7 @@ Drawings (and rubber):
 **Image** ⏳:
     - exact location on window
     - exact size and direction
+    
 
 Marker:
     - exact text that was marked (make sure they are applied on reload too)
