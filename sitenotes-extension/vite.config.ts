@@ -8,6 +8,7 @@ export default defineConfig({
     outDir: 'dist',
     minify: false,
     rollupOptions: {
+      external: ['src/database.ts'],
       input: {
         main: 'index.html',
         contentScriptNote: 'src/content-script-note.ts',
@@ -16,7 +17,7 @@ export default defineConfig({
         contentScriptDraw: 'src/content-script-draw.ts',
         contentScriptIMG: 'src/content-script-img.ts',
         manageNotes: 'src/manage-notes.ts',
-        database: 'src/database.ts',
+        // database: 'src/database.ts',
         background: 'src/background.ts',
       },
       output: {

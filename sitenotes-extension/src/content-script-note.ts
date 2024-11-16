@@ -1,4 +1,6 @@
-import { saveData, getData, openDatabase, STORE_NOTES } from './database';
+const DB_NAME_NOTE = 'siteNotesDB';
+const DB_VERSION_NOTE = 1;
+const STORE_NOTES = 'notes';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
@@ -25,11 +27,57 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // Keep the message channel open
 });
 
-// Load notes on page load - it's not working
-// document.addEventListener('DOMContentLoaded', () => {
-//     console.log('DOM fully loaded and parsed');
-//     loadNotes();
-// });
+// INDEXEDDB MOVED HERE BECAUSE OF VITE (EVEN AI CAN'T FIX THIS) (I'm sorry, I'm just a student) (AUTO-COMPLETED COMMENTS ARE FUNNY)
+// BASICALLY, VITE IS A CRYBABY IF YOU ARE TRYING TO EXPORT AND IMPORT METHODS AND ESPECIALLY IF USED BY MANY SO I MOVED IT HERE
+// I HATE IT WITH A PASSION AND THIS IS AN EMBARRASSMENT FOR THE WHOLE COMMUNITY OF PROGRAMMERS WHO TELLS YOU NOT TO WRITE REPETITIVE CODE
+
+const saveNoteData = async (storeName: string, data: any): Promise<void> => {
+    const db = await openNoteDatabase();
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+  
+    // Add or update the data based on the ID
+    store.put(data);
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+    });
+};
+
+const getNoteData = async (key: string): Promise<any> => {
+    const db = await openNoteDatabase();
+    const transaction = db.transaction(STORE_NOTES, 'readonly');
+    const store = transaction.objectStore(STORE_NOTES);
+  
+    const request = store.get(key);
+  
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (event) => reject((event.target as IDBRequest).error);
+    });
+  };
+
+const openNoteDatabase = async (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME_NOTE, DB_VERSION_NOTE);
+  
+      request.onupgradeneeded = (event: any) => {
+        const db = event.target.result;
+  
+        if (!db.objectStoreNames.contains(STORE_NOTES)) {
+          db.createObjectStore(STORE_NOTES, { keyPath: 'id' });
+        }
+      };
+  
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+  
+      request.onerror = (event: any) => {
+        reject(event.target.error);
+      };
+    });
+  };
 
 const loadNotes = async () => {
     const url = window.location.href;
@@ -50,7 +98,7 @@ const loadNotes = async () => {
 // Retrieve all notes for the current URL
 async function getAllNotesForURL(url: string) {
     console.log('Loading notes for URL:', url);
-    const db = await openDatabase();
+    const db = await openNoteDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readonly');
     const store = transaction.objectStore(STORE_NOTES);
 
@@ -187,13 +235,13 @@ function addNoteToPage(
     titleArea.addEventListener('input', () => {
         const currentColor = noteDiv.style.backgroundColor;
         const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
-        saveNoteData(titleArea, textArea, noteDiv, currentPosition, currentColor);
+        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor);
     });
     
     textArea.addEventListener('input', () => {
         const currentColor = noteDiv.style.backgroundColor;
         const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
-        saveNoteData(titleArea, textArea, noteDiv, currentPosition, currentColor);
+        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor);
     });
     
     // Make the div draggable
@@ -225,7 +273,7 @@ function addNoteToPage(
 
             // Save note data with new position as it's being moved only if there is text inside title or textarea
             if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
-                saveNoteData(titleArea, textArea, noteDiv, { x: newX, y: newY }, noteDiv.style.backgroundColor);
+                saveNote(titleArea, textArea, noteDiv, { x: newX, y: newY }, noteDiv.style.backgroundColor);
             }
         }
     
@@ -356,8 +404,6 @@ function addNoteToPage(
         };
     };
     
-    
-
     // handle editing button
     editButton.onclick = function() {
         const isEditable = textArea.readOnly;
@@ -377,7 +423,7 @@ function addNoteToPage(
 
         // Save note data including the new color
         if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
-            saveNoteData(titleArea, textArea, noteDiv, noteDiv.getBoundingClientRect(), noteDiv.style.backgroundColor);
+            saveNote(titleArea, textArea, noteDiv, noteDiv.getBoundingClientRect(), noteDiv.style.backgroundColor);
         };
     }
 
@@ -397,9 +443,9 @@ function addNoteToPage(
     console.log(noteDiv.getClientRects());
 }
 
-// INDEXEDDB HERE WE GO
+// MORE INDEXEDDB HERE WE GO
 
-async function saveNoteData(
+async function saveNote(
     titleArea: HTMLTextAreaElement, 
     textArea: HTMLTextAreaElement, 
     noteDiv: HTMLElement, 
@@ -433,7 +479,7 @@ async function createOrUpdateNote(url: string, noteData: { id: number; title: st
         url: url,
     };
 
-    await saveData(STORE_NOTES, note);
+    await saveNoteData(STORE_NOTES, note);
 }
 
 async function updateNoteInDB(
@@ -446,7 +492,7 @@ async function updateNoteInDB(
         closed?: boolean;
     }
 ) {
-    const note = await getData(STORE_NOTES, noteId.toString());
+    const note = await getNoteData(noteId.toString());
     if (note) {
         note.title = updatedData.title;
         note.text = updatedData.text;
@@ -454,13 +500,13 @@ async function updateNoteInDB(
         note.position = updatedData.position;
         note.closed = updatedData.closed || false; // Default to false if not provided
         note.timestamp.modified = new Date().toISOString();
-        await saveData(STORE_NOTES, note);
+        await saveNoteData(STORE_NOTES, note);
     }
 }
 
 // Not implemented fully rn dw
 async function deleteNoteFromDB(noteId: number) {
-    const db = await openDatabase();
+    const db = await openNoteDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readwrite');
     const store = transaction.objectStore(STORE_NOTES);
     store.delete(noteId);

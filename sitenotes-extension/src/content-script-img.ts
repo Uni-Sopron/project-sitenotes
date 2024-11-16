@@ -1,3 +1,34 @@
+// import { saveImage } from "./database"; THERE WON'T BE DATABASE.TS
+const DB_NAME_IMG = 'siteNotesDB';
+const DB_VERSION_IMG = 1;
+const STORE_IMAGES = 'images';
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    try {
+        if (message.action === 'loadImage') {
+            loadImage(message.id); // this is probably all placeholder just to justify their use to good ol' Vite
+            sendResponse({ status: 'success' });
+        }
+        // if (message.action === 'addImage') {
+        //     handleImageUpload();
+        //     sendResponse({ status: 'success' });
+        // }
+        // if (message.action === 'updateImage') {
+        //     updateImageInDB(message.imageId, message.updatedData);
+        //     sendResponse({ status: 'success' });
+        // }
+        // if (message.action === 'deleteImage') {
+        //     deleteImageFromDB(message.imageId);
+        //     sendResponse({ status: 'success' });
+        // }
+    } catch (error: any) {
+        console.error('Error in managing image:', error);
+        sendResponse({ status: 'failure', message: error.message });
+    }
+    return true; // Keep the message channel open
+});
+
+
 const handleImageUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -13,7 +44,7 @@ const handleImageUpload = () => {
                 const img = new Image(); // Create an Image object to get the original size
                 img.src = e.target?.result as string;
 
-                img.onload = () => {
+                img.onload = async () => {
                     const maxWidth = 150; // Max width for the image
                     const maxHeight = 150; // Max height for the image
                     let width = img.width;
@@ -42,6 +73,7 @@ const handleImageUpload = () => {
                     wrapper.style.border = '1px dashed gray'; // Optional: a border for visibility
                     wrapper.style.boxSizing = 'border-box'; // Prevents border from affecting size
                     wrapper.style.overflow = 'visible'; // Allow overflow for resizing handles
+                    wrapper.style.zIndex = '9991'; // Ensure the image is on top of most elements
 
                     const resizedImg = document.createElement('img');
                     resizedImg.src = img.src;
@@ -50,7 +82,7 @@ const handleImageUpload = () => {
                     resizedImg.style.objectFit = 'contain'; // Contain to avoid distortion
                     resizedImg.style.cursor = 'move';
 
-                    // Create resize handles
+                    // Create resize handles (code to make it resizable)
                     const resizeHandle = document.createElement('div');
                     resizeHandle.style.width = '10px';
                     resizeHandle.style.height = '10px';
@@ -62,7 +94,7 @@ const handleImageUpload = () => {
                     resizeHandle.style.display = 'none'; // Initially hidden
                     wrapper.appendChild(resizeHandle);
 
-                    // Create menu for image actions
+                    // Create menu for image actions (delete, resize, etc.)
                     const menu = document.createElement('div');
                     menu.style.position = 'absolute';
                     menu.style.backgroundColor = 'white';
@@ -180,13 +212,109 @@ const handleImageUpload = () => {
                         isDraggingImage = false;
                         isResizing = false;
                     });
+
+                    // After the image is loaded and resized, save the image to IndexedDB
+                    const imageData = {
+                        id: Date.now(), // Unique ID for the image
+                        src: img.src, // Base64 string of the image
+                        position: { x: 200, y: 200 }, // Example position
+                        size: { width, height }, // Resized dimensions
+                    };
+
+                    // const { saveImage } = await import('./database'); death of database.ts
+                    saveImage(window.location.href, imageData); // Save the image to IndexedDB
                 };
             };
-            reader.readAsDataURL(file);
+
+            reader.readAsDataURL(file); // Read the file as a data URL (base64 encoding)
         }
     };
 
-    input.click(); 
+    document.body.appendChild(input);
+    input.click(); // Trigger the file input dialog
+};
+
+const saveImage = async (url: string, imageData: { id: number; src: string; position: { x: number; y: number }; size: { width: number; height: number } }): Promise<void> => {
+    const image = {
+      ...imageData,
+      timestamp: {
+        created: new Date().toISOString(),
+        modified: new Date().toISOString(),
+      },
+      url: url
+    };
+  
+    await saveImageData(STORE_IMAGES, image);
+  };
+
+const openImageDatabase = async (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME_IMG, DB_VERSION_IMG);
+  
+      request.onupgradeneeded = (event: any) => {
+        const db = event.target.result;
+  
+        if (!db.objectStoreNames.contains(STORE_IMAGES)) {
+          db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
+        }
+      };
+  
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+  
+      request.onerror = (event: any) => {
+        reject(event.target.error);
+      };
+    });
+  };
+
+const saveImageData = async (storeName: string, data: any): Promise<void> => {
+    const db = await openImageDatabase();
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+  
+    // Add or update the data based on the ID
+    store.put(data);
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+    });
+  };
+
+const getImageData = async (key: string): Promise<any> => {
+    const db = await openImageDatabase();
+    const transaction = db.transaction(STORE_IMAGES, 'readonly');
+    const store = transaction.objectStore(STORE_IMAGES);
+  
+    const request = store.get(key);
+  
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (event) => reject((event.target as IDBRequest).error);
+    });
+  };
+
+const loadImage = async (id: number) => {
+    try {
+        const imageData = await getImageData(id.toString());
+        if (imageData) {
+            const img = new Image();
+            img.src = imageData.src;
+            img.style.position = 'absolute';
+            img.style.left = `${imageData.position.x}px`;
+            img.style.top = `${imageData.position.y}px`;
+            img.style.width = `${imageData.size.width}px`;
+            img.style.height = `${imageData.size.height}px`;
+            img.style.zIndex = '9991';
+
+            document.body.appendChild(img);
+        } else {
+            console.log('Image not found');
+        }
+    } catch (error) {
+        console.error('Failed to load image:', error);
+    }
 };
 
 export { handleImageUpload };

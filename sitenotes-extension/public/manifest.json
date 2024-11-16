@@ -23,7 +23,6 @@
       "assets/contentScriptDraw.js",
       "assets/contentScriptIMG.js",
       "assets/contentScriptNote.js",
-      "assets/database.js",
       "note.css", 
       "note-icons/*",
       "toolbar-icons/*", 
@@ -43,8 +42,7 @@
          "assets/contentScriptDraw.js",
          "assets/contentScriptIMG.js",
          "assets/contentScriptNote.js",
-         "assets/manageNotes.js",
-         "assets/database.js"]
+         "assets/manageNotes.js"]
     }
   ]
   }
