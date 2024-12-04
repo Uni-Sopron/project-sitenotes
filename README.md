@@ -71,15 +71,3 @@ A dist folder felelős azért, hogy a stabil állapototát megtartsa az alkalmaz
 **FONTOS**: Nincs npm start! Helyette ha először buildeltünk, utána a dist foldert kell betölteni a megosztott tutorial videó szerint (Empty Extension résznél, mindig azt a foldert kell betölteni, ahol van a manifest.json). Onnantól kezdve a többi buildnél csak újrafrissíteni kell az Extensions tab-nél.
 
 Az src mappában vannak a script fájlok, a publicban az image és hasonló médiák.
-
-## Megjegyzések
-
-A README.md fájl tartalma bármikor változhat a projekt időszakában.  
-A fejlesztési időszakok Teamsre kerülnek ki meeting formában (aki nem tudna részt venni, az ott is tudja jelezni).  
-Ezek az időszakok a következők:  
-- Kedd: 14:30-16:30
-- Szerda: 14:30-16:30
-- Csütörtök: 14:30-16:30
-
-Ezek mellett crunchtime-ok is lehetnek előzetes egyeztetés alapján a gyorsabb haladás érdekében.  
-Ugyanúgy természetesen a feladataival magánidejében mindenki foglalkozhat, de mindenképpen jelezze, illetve a kanban táblában írja le a haladását és helyezze a megfelelő helyre.
