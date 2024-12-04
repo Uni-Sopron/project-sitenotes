@@ -1,74 +1,105 @@
-import './App.css'
+import React, { useState } from 'react';
+import './App.css';
 
-function App() {
-  /*const [count, setCount] = useState(0)*/
+const App: React.FC = () => {
+  const [notesVisible, setNotesVisible] = useState<boolean>(false);
+  const [toolsVisible, setToolsVisible] = useState<boolean>(true);
 
+  const showNotes = () => {
+    setNotesVisible((prev) => !prev);
+  };
+
+  const showTools = () => {
+    setToolsVisible((prev) => !prev);
+
+    // Send a message to the content script to toggle the toolbar
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleToolbar' }, (response) => {
+          if (response?.status === 'success') {
+            console.log('Toolbar toggled');
+          }
+        });
+      }
+    });
+  };
+
+  const addNote = () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'addNote' }, (response) => {
+          if (response) {
+            if (response.status === 'success') {
+              console.log('Note added successfully');
+            } else {
+              console.error('Failed to add note:', response.message);
+            }
+          } else {
+            console.error('No response received from content script.');
+          }
+        });
+      }
+    });
+  };
+  
+
+  const openManageNotesPage = () => {
+    window.open('manage-notes.html', '_blank');
+  };
+  
+  //took out toolbar from here as you can see
   return (
-  <>
-    <table className='buttons'>
-      <tr>
-        <td>
-          <button className='add-note'></button>
-        </td>
-        <td>
-          <button className='notes'></button>
-        </td>
-        <td>
-          <button className='iconizer'></button>
-        </td>
-        <td>
-          <button className='all-notes'></button>
-        </td>
-        <td>
-          <button className='tools'></button>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <p>Add Notes</p>
-        </td>
-        <td>
-          <p>Show Notes</p>
-        </td>
-        <td>
-          <p>Iconizer</p>
-        </td>
-        <td>
-          <p>All Notes</p>
-        </td>
-        <td>
-          <p>Tools</p>
-        </td>
-      </tr>
-    </table>
-  </>
-  )
-  /*(
-    <>
-    
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-  */
+    <div className="popup-content">
+      <table className='buttons'>
+        <tbody>
+          <tr>
+            <td>
+              <button onClick={addNote}><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note" /></button>
+            </td>
+            <td>
+              <button onClick={showNotes}>
+                <img
+                  src={notesVisible ? "/popup-icons/pen-solid.svg" : "/popup-icons/message-solid.svg"}
+                  alt={notesVisible ? "Hide Notes" : "Show Notes"}
+                />
+              </button>
+            </td>
+            <td>
+              <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer" /></button>
+            </td>
+            <td>
+              <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes" /></button>
+            </td>
+            <td>
+              <button onClick={showTools}>
+                <img
+                  src={toolsVisible ? "/popup-icons/message-solid.svg" : "/popup-icons/pen-solid.svg"}
+                  alt={toolsVisible ? "Hide Tools" : "Show Tools"}
+                />
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Add Notes</p>
+            </td>
+            <td>
+              <p>{notesVisible ? "Hide Notes" : "Show Notes"}</p>
+            </td>
+            <td>
+              <p>Iconizer</p>
+            </td>
+            <td>
+              <p>All Notes</p>
+            </td>
+            <td>
+              <p>{toolsVisible ? "Hide Tools" : "Show Tools"}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-export default App
+export default App;

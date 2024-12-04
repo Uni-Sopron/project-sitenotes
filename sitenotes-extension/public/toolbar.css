@@ -1,0 +1,66 @@
+/* Make sure both horizontal and vertical toolbars have consistent layout logic */
+.rounded-rectangle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  gap: 10px;
+  /* Space between the icons */
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 15px;
+  z-index: 9999;
+}
+
+.rounded-rectangle.horizontal {
+  position: fixed;
+  width: 12cm;
+  /* Set width for horizontal */
+  height: 1.5cm;
+  /* Set height for horizontal */
+  flex-direction: row;
+  /* Ensure horizontal layout */
+  justify-content: space-around;
+  /* Adjust layout */
+}
+
+.rounded-rectangle.vertical {
+  position: fixed;
+  width: 1.5cm;
+  /* Set width for vertical */
+  height: 12cm;
+  /* Set height for vertical */
+  flex-direction: column;
+  /* Ensure vertical layout */
+  justify-content: space-around;
+  /* Adjust layout */
+}
+
+/* Ensure all buttons and icons have a consistent size */
+.icon-button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  /* Set fixed button size */
+  height: 40px;
+  /* Set fixed button size */
+}
+
+.icon-button img {
+  width: 40px;
+  /* Adjust image size to fit the button */
+  height: 40px;
+  /* Adjust image size to fit the button */
+}
+
+.button-container.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+*/ .button-container.vertical {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,7 +1,7 @@
 {
   "name": "sitenotes-extension",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-draggable": "^4.4.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@types/chrome": "^0.0.277",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

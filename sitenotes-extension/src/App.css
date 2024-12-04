@@ -13,44 +13,116 @@
   border-collapse: separate;
 }
 
-p{
+p {
   font-weight: 500;
   font-size: 13px;
   color: black;
   font-style: bold;
 }
 
-.add-note {
-  background-image: url('./../public/popup-icons/note-sticky-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+img {
+  width: 100%;
+  height: 100%;
 }
 
-.notes {
-  background-image: url('./../public/popup-icons/message-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+/* Lekerekített téglalap stílusai */
+.rounded-rectangle.horizontal {
+  position: fixed;
+  /* A téglalap fix pozícióban marad a böngésző ablakon belül */
+  width: 10cm;
+  /* A téglalap szélessége */
+  height: 1.5cm;
+  /* A téglalap magassága */
+  background-color: white;
+  /* Háttérszín */
+  border: 1px solid black;
+  /* Opcióként keret */
+  border-radius: 15px;
+  /* Lekerekített sarkok */
+  display: flex;
+  /* Rugalmas doboz a gombok elhelyezéséhez */
+  align-items: center;
+  /* Középre igazítja a gombokat függőlegesen */
+  justify-content: space-around;
+  /* Egyenlő távolságot biztosít a gombok között */
+  z-index: 9999;
+  /* Biztosítja, hogy más tartalom fölött jelenjen meg */
 }
 
-.iconizer {
-  background-image: url('./../public/popup-icons/compress-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+/* Lekerekített téglalap stílusai */
+.rounded-rectangle.vertical {
+  position: fixed;
+  /* A téglalap fix pozícióban marad a böngésző ablakon belül */
+  width: 1.5cm;
+  /* A téglalap szélessége */
+  height: 10cm;
+  /* A téglalap magassága */
+  background-color: white;
+  /* Háttérszín */
+  border: 1px solid black;
+  /* Opcióként keret */
+  border-radius: 15px;
+  /* Lekerekített sarkok */
+  display: flex;
+  /* Rugalmas doboz a gombok elhelyezéséhez */
+  align-items: center;
+  /* Középre igazítja a gombokat függőlegesen */
+  justify-content: space-around;
+  /* Egyenlő távolságot biztosít a gombok között */
+  z-index: 9999;
+  /* Biztosítja, hogy más tartalom fölött jelenjen meg */
 }
 
-.all-notes {
-  background-image: url('./../public/popup-icons/list-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+
+
+
+/* Gomb stílusai */
+.button-container {
+  display: flex;
+  /* Flexbox aktiválása */
+  align-items: center;
+  /* Középre igazítás függőlegesen */
+  justify-content: flex-start;
+  /* Balra igazítás */
+  width: 100%;
+  /* A konténer teljes szélessége */
+  border: 0;
+  /* Nincs keret */
+  gap: 0cm;
+  /* 0.5 cm távolság a gombok között */
+  padding: 10px;
+  /* Párnázás */
 }
 
-.tools {
-  background-image: url('./../public/popup-icons/pen-solid.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto;
+/* Gomb stílusai */
+.icon-button {
+  border: 0;
+  /* Nincs keret */
+  background: none;
+  /* Nincs háttér */
+  cursor: pointer;
+  /* Kézmutató kurzor */
+  padding: 0;
+  /* Nincs párnázás */
+  width: 40px;
+  /* Az ikonok szélessége */
+  height: 40px;
+}
+
+.icon-button img {
+  width: 40px;
+  /* Az ikonok szélessége */
+  height: 40px;
+  /* Az ikonok magassága */
+}
+
+
+.button-container.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+.button-container.vertical {
+  display: flex;
+  flex-direction: column;
 }
