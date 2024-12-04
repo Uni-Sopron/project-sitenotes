@@ -27,9 +27,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // Keep the message channel open
 });
 
-// INDEXEDDB MOVED HERE BECAUSE OF VITE (EVEN AI CAN'T FIX THIS) (I'm sorry, I'm just a student) (AUTO-COMPLETED COMMENTS ARE FUNNY)
-// BASICALLY, VITE IS A CRYBABY IF YOU ARE TRYING TO EXPORT AND IMPORT METHODS AND ESPECIALLY IF USED BY MANY SO I MOVED IT HERE
-// I HATE IT WITH A PASSION AND THIS IS AN EMBARRASSMENT FOR THE WHOLE COMMUNITY OF PROGRAMMERS WHO TELLS YOU NOT TO WRITE REPETITIVE CODE
+// INDEXEDDB MOVED HERE
 
 const saveNoteData = async (storeName: string, data: any): Promise<void> => {
     const db = await openNoteDatabase();
@@ -411,7 +409,7 @@ function addNoteToPage(
         editButton.style.opacity = isEditable ? '1' : '0.5';
     };
 
-    // info alert for development, so everybody 👃
+    // info alert for development, so everybody knows
     infoButton.onclick = function() {
         alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the note. \n\n\tX: Close the note. \n\n\tReadonly: Make the note editable or readonly.');
     }
@@ -443,7 +441,7 @@ function addNoteToPage(
     console.log(noteDiv.getClientRects());
 }
 
-// MORE INDEXEDDB HERE WE GO
+// MORE INDEXEDDB
 
 async function saveNote(
     titleArea: HTMLTextAreaElement, 

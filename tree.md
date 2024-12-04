@@ -121,7 +121,7 @@ Marker:
     - exact title and text inside note
     - modification timestamp
 
-OH! and creation and modification timestamps except toolbar (maybe? lol). Silly me.  
+OH! and creation and modification timestamps except toolbar.
 
 Contender technologies considered for saving:
     - IndexedDB (absolutely badass, saves anything up to 2 heebiejeebies, and yes, I ended up using this)

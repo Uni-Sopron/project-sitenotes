@@ -6,7 +6,7 @@ const STORE_IMAGES = 'images';
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
         if (message.action === 'loadImage') {
-            loadImage(message.id); // this is probably all placeholder just to justify their use to good ol' Vite
+            loadImage(message.id);
             sendResponse({ status: 'success' });
         }
         // if (message.action === 'addImage') {
