@@ -35,13 +35,17 @@ const handleImageUpload = () => {
                     // Create a wrapper div for the image to enable resizing
                     const wrapper = document.createElement('div');
                     wrapper.style.position = 'absolute';
-                    wrapper.style.top = '200px';
-                    wrapper.style.left = '200px';
+                    const scrollX = window.scrollX || 0;
+                    const scrollY = window.scrollY || 0;
+                    wrapper.style.top = `${scrollY + 200}px`;
+                    wrapper.style.left = `${scrollX + 200}px`;
                     wrapper.style.width = `${width}px`;
                     wrapper.style.height = `${height}px`;
                     wrapper.style.border = '1px dashed gray'; // Optional: a border for visibility
                     wrapper.style.boxSizing = 'border-box'; // Prevents border from affecting size
                     wrapper.style.overflow = 'visible'; // Allow overflow for resizing handles
+                    wrapper.style.zIndex = '8000'; 
+
 
                     const resizedImg = document.createElement('img');
                     resizedImg.src = img.src;
@@ -69,7 +73,7 @@ const handleImageUpload = () => {
                     menu.style.border = '1px solid gray';
                     menu.style.padding = '5px';
                     menu.style.display = 'none'; // Initially hidden
-
+                    menu.style.zIndex = '9999';
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Törlés';
                     deleteButton.onclick = () => {
@@ -186,7 +190,7 @@ const handleImageUpload = () => {
         }
     };
 
-    input.click(); 
+    input.click();
 };
 
 export { handleImageUpload };
