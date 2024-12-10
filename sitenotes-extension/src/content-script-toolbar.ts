@@ -277,11 +277,20 @@ const toggleEraserButton = () => {
     eraserMenu.style.padding = '15px'; // ne állítgasd köszi <3 elrontja a szélesség számítást
     eraserMenu.style.zIndex = '9999';
     eraserMenu.style.borderRadius = '15px';
+    eraserMenu.style.color = 'black';
+    eraserMenu.style.fontFamily = 'Nunito'; // Betűtípus
+    eraserMenu.style.fontSize = '16px'; // Betűméret
 
 
     // Radír méret beállító
     const sizeLabel = document.createElement('label');
     sizeLabel.textContent = 'Radír mérete: ';
+    sizeLabel.style.color = 'black'; // Szöveg színe
+    sizeLabel.style.fontFamily = 'Nunito'; // Betűtípus
+    sizeLabel.style.fontSize = '16px'; // Betűméret
+    sizeLabel.style.fontWeight = 'bold'; // Vastag betű
+
+    
 
     const sizeSlider = document.createElement('input');
     sizeSlider.type = 'range';
@@ -302,6 +311,8 @@ const toggleEraserButton = () => {
     clearButton.style.borderRadius = '5px'; // Lekerekített szélek
     clearButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
     clearButton.style.color = 'black'; // Szöveg színe
+    clearButton.style.fontFamily = 'Nunito'; // Betűtípus
+    clearButton.style.fontSize = '16px'; // Betűméret
     clearButton.style.border = '1px solid #ddd'; // Határvonal
 
     // Label alá igazítás
@@ -347,9 +358,16 @@ const togglePencilButton = () => {
     pencilMenu.style.padding = '15px';
     pencilMenu.style.zIndex = '9999';
     pencilMenu.style.borderRadius = '15px';
+    pencilMenu.style.color = 'black';
+    pencilMenu.style.fontFamily = 'Nunito'; // Betűtípus
+    pencilMenu.style.fontSize = '16px'; // Betűméret
 
     const sizeLabel = document.createElement('label');
     sizeLabel.textContent = 'Ceruza mérete: ';
+    sizeLabel.style.color = 'black'; // Szöveg színe
+    sizeLabel.style.fontFamily = 'Nunito'; // Betűtípus
+    sizeLabel.style.fontSize = '16px'; // Betűméret
+    sizeLabel.style.fontWeight = 'bold'; // Vastag betű
 
     const sizeSlider = document.createElement('input');
     sizeSlider.type = 'range';
@@ -398,11 +416,13 @@ const toggleHighlighterButton = () => {
     highlighterButton = document.createElement('button');
     highlighterButton.textContent = 'Highlight';
     highlighterButton.style.marginLeft = '0px';
-    highlighterButton.style.marginTop = '5px';
+    highlighterButton.style.marginTop = '0px';
     highlighterButton.style.padding = '8px 12px'; // Nagyobb gombméret
     highlighterButton.style.borderRadius = '5px'; // Lekerekített szélek
     highlighterButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
     highlighterButton.style.color = 'black'; // Szöveg színe
+    highlighterButton.style.fontFamily = 'Nunito'; // Betűtípus
+    highlighterButton.style.fontSize = '16px'; // Betűméret
     highlighterButton.style.border = '1px solid #ddd'; // Határvonal
     highlighterButton.addEventListener('click', () => {
       // Highlighter mód
@@ -421,6 +441,8 @@ const toggleHighlighterButton = () => {
     deleteHighlighterButton.style.borderRadius = '5px'; // Lekerekített szélek
     deleteHighlighterButton.style.backgroundColor = '#f8f9fa'; // Háttérszín
     deleteHighlighterButton.style.color = 'black'; // Szöveg színe
+    deleteHighlighterButton.style.fontFamily = 'Nunito'; // Betűtípus
+    deleteHighlighterButton.style.fontSize = '16px'; // Betűméret
     deleteHighlighterButton.style.border = '1px solid #ddd'; // Határvonal
     deleteHighlighterButton.style.display = 'block'; // Külön sorba kerül a gomb
     deleteHighlighterButton.addEventListener('click', () => {
