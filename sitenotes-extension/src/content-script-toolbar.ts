@@ -1,4 +1,4 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
@@ -83,6 +83,19 @@ const setButtonOpacity = (buttonId: string, opacity: number): void => {
   if (button) {
     button.style.opacity = `${opacity}`;
   }
+}
+
+
+
+const setColorIcon = (buttonId: string, color: string) => {
+  // A gomb színének beállítása
+  setPencilColor(color);
+
+  const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
+  if (button) {
+    button.style.backgroundColor = color;    
+  }
+
 }
 
 // TOOLBAR FUNCTIONALITY
@@ -216,18 +229,18 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => setColorIcon('color-button-1','#6969C0'), className: 'color-button-1' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => setColorIcon('color-button-2','#BF6969'), className: 'color-button-2' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => setColorIcon('color-button-3','#69BF69'), className: 'color-button-3' },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 1', onClick: () => console.log('Color 1 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 2', onClick: () => console.log('Color 2 clicked') },
-        { icon: chrome.runtime.getURL('toolbar-icons/color.svg'), alt: 'Color 3', onClick: () => console.log('Color 3 clicked') },
+        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => setColorIcon('color-button-1','#6969C0'), className: 'color-button-1' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => setColorIcon('color-button-2','#BF6969'), className: 'color-button-2' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => setColorIcon('color-button-3','#69BF69'), className: 'color-button-3' },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
@@ -244,6 +257,18 @@ const createToolbar = () => {
       button.appendChild(img);
       button.onclick = onClick;
       toolbar!.appendChild(button);
+
+      // TODO ocsmány és ronda, de most így oldjuk meg hogy legyen első szín, később módosítjuk
+      if (className === 'color-button-1' && button.style.backgroundColor === '') {
+        button.style.backgroundColor = '#6969C0';
+      }
+      if (className === 'color-button-2' && button.style.backgroundColor === '') {
+        button.style.backgroundColor = '#BF6969';
+      }
+      if (className === 'color-button-3' && button.style.backgroundColor === '') {
+        button.style.backgroundColor = '#69BF69';
+      }
+
     });
   };
 

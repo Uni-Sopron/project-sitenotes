@@ -199,6 +199,12 @@ const stopPencilMode = () => {
       ctx.lineWidth = size;
     }
   }
+
+  const setPencilColor = (color: string) => {
+    if (ctx) {
+      ctx.strokeStyle = color;
+    }
+  }
   
   const activatePencilMode = () => {
     if (!canvas) {
@@ -281,6 +287,7 @@ const stopPencilMode = () => {
     stopEraserMode,
     stopPencilMode,
     clearCanvas,
-    setPencilSize};
+    setPencilSize,
+    setPencilColor};
   
   
