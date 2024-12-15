@@ -1,18 +1,19 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
 let highlighterMenu: HTMLDivElement | null = null;
+let colorPickerMenu: HTMLDivElement | null = null;
 let activeButton: string | null = null;
 let highlighterButton: HTMLButtonElement | null = null;
 let deleteHighlighterButton: HTMLButtonElement | null = null;
+let colorBox: HTMLSpanElement | null = null;
 let isVertical = false;
 let isMovable = false;
 
 const startProcess = (buttonId: string) => {
-  console.log(activeButton);
 
   if (activeButton) {
     setButtonOpacity(activeButton, 1);
@@ -24,7 +25,9 @@ const startProcess = (buttonId: string) => {
     }
   }
   activeButton = buttonId;
+  if (buttonId != 'color-button-1' && buttonId != 'color-button-2' && buttonId != 'color-button-3') {
   setButtonOpacity(buttonId, 0.5);
+  }
 
   // A gomb ID-jának alapján indítsd el a megfelelő folyamatot
   switch (buttonId) {
@@ -40,6 +43,11 @@ const startProcess = (buttonId: string) => {
     case 'move-button':
       isMovable = true;
       break
+    case 'color-button-1':
+    case 'color-button-2':
+    case 'color-button-3':
+      toggleColorPicker(buttonId);
+      break;
   }
 };
 
@@ -73,7 +81,13 @@ const stopProcess = () => {
     case 'move-button':
       // Mozgatás kikapcsoló
       isMovable = false;
-
+      break;
+    
+    case 'color-button-1':
+    case 'color-button-2':
+    case 'color-button-3':
+      // Színválasztó kikapcsoló
+      colorPickerMenu!.style.display = 'none';
       break;
   }
 };
@@ -85,18 +99,16 @@ const setButtonOpacity = (buttonId: string, opacity: number): void => {
   }
 }
 
+// const setColorIcon = (buttonId: string, color: string) => {
+//   // A gomb színének beállítása
+//   setPencilColor(color);
 
+//   const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
+//   if (button) {
+//     button.style.backgroundColor = color;    
+//   }
 
-const setColorIcon = (buttonId: string, color: string) => {
-  // A gomb színének beállítása
-  setPencilColor(color);
-
-  const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
-  if (button) {
-    button.style.backgroundColor = color;    
-  }
-
-}
+// }
 
 // TOOLBAR FUNCTIONALITY
 const createToolbar = () => {
@@ -229,18 +241,18 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => setColorIcon('color-button-1','#6969C0'), className: 'color-button-1' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => setColorIcon('color-button-2','#BF6969'), className: 'color-button-2' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => setColorIcon('color-button-3','#69BF69'), className: 'color-button-3' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => startProcess('color-button-1'), className: 'color-button-1' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => startProcess('color-button-2'), className: 'color-button-2' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => startProcess('color-button-3'), className: 'color-button-3' },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
       ]
       : [
         { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => setColorIcon('color-button-1','#6969C0'), className: 'color-button-1' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => setColorIcon('color-button-2','#BF6969'), className: 'color-button-2' },
-        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => setColorIcon('color-button-3','#69BF69'), className: 'color-button-3' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => startProcess('color-button-1'), className: 'color-button-1' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color2.svg'), alt: 'Color 2', onClick: () => startProcess('color-button-2'), className: 'color-button-2' },
+        { icon: chrome.runtime.getURL('toolbar-icons/color3.svg'), alt: 'Color 3', onClick: () => startProcess('color-button-3'), className: 'color-button-3' },
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout },
@@ -295,7 +307,7 @@ const toggleEraserButton = () => {
     eraserMenu = document.createElement('div');
     eraserMenu.id = 'eraserMenu';
     eraserMenu.style.position = 'fixed';
-    eraserMenu.style.height = '80px'; // Magasság
+    eraserMenu.style.height = '150px'; // Magasság
 
     eraserMenu.style.backgroundColor = 'white';
     eraserMenu.style.border = '1px solid black';
@@ -356,13 +368,13 @@ const toggleEraserButton = () => {
 
   // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
   if (isVertical) {
-    eraserMenu.style.top = `${toolbarRect.bottom - 120}px`; // Y pozíció
+    eraserMenu.style.top = `${toolbarRect.bottom - parseInt(eraserMenu.style.height)}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    eraserMenu.style.width = `${(toolbarRect.height / 2)}px`; // Szélesség/2  - 2x padding
   } else {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    eraserMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
   }
 
 
@@ -377,7 +389,7 @@ const togglePencilButton = () => {
     pencilMenu = document.createElement('div');
     pencilMenu.id = 'pencilMenu';
     pencilMenu.style.position = 'fixed';
-    pencilMenu.style.height = '80px';
+    pencilMenu.style.height = '150px';
     pencilMenu.style.backgroundColor = 'white';
     pencilMenu.style.border = '1px solid black';
     pencilMenu.style.padding = '15px';
@@ -386,6 +398,11 @@ const togglePencilButton = () => {
     pencilMenu.style.color = 'black';
     pencilMenu.style.fontFamily = 'Nunito'; // Betűtípus
     pencilMenu.style.fontSize = '16px'; // Betűméret
+    pencilMenu.style.display = 'flex';
+
+    pencilMenu.style.alignItems = 'center'; // Középre igazítás
+    pencilMenu.style.display = 'flex';
+    pencilMenu.style.flexDirection = 'column'; // Oszlopba rendezés
 
     const sizeLabel = document.createElement('label');
     sizeLabel.textContent = 'Ceruza mérete: ';
@@ -399,27 +416,45 @@ const togglePencilButton = () => {
     sizeSlider.min = '10';
     sizeSlider.max = '50';
     sizeSlider.value = '25';
+    sizeSlider.style.width = '120px';
     sizeSlider.oninput = (e) => {
       const value = (e.target as HTMLInputElement).value;
       setPencilSize(parseInt(value));
     };
 
+    const activeColorLabel = document.createElement('label');
+    activeColorLabel.textContent = 'Aktív szín: ';
+    activeColorLabel.style.textAlign = 'center'; // Középre igazítás
+    activeColorLabel.style.marginBottom = '5px'; // Térköz az előző elemhez
+    activeColorLabel.style.marginTop = '10px'; // Térköz az előző elemhez
+
+    colorBox = document.createElement('span') as HTMLSpanElement;
+    colorBox.style.backgroundColor = getCTXColor() as string;
+    colorBox.style.width = '120px';
+    colorBox.style.height = '25px';
+    colorBox.style.border = '3px solid black';
+
+
     pencilMenu.appendChild(sizeLabel);
     pencilMenu.appendChild(sizeSlider);
+    pencilMenu.appendChild(activeColorLabel);
+    pencilMenu.appendChild(colorBox);
     document.body.appendChild(pencilMenu);
   } else {
-    pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'block' : 'none';
+    pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'flex' : 'none';
   }
+  
+  colorBox!.style.backgroundColor = getCTXColor() as string;
 
   // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
   if (isVertical) {
-    pencilMenu.style.top = `${toolbarRect.top + 140}px`; // Y pozíció
+    pencilMenu.style.top = `${toolbarRect.top}px`; // Y pozíció
     pencilMenu.style.left = `${toolbarRect.right}px`; // X pozíció
     pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
   } else {
     pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-    pencilMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    pencilMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
   }
 }
 
@@ -431,7 +466,7 @@ const toggleHighlighterButton = () => {
     highlighterMenu = document.createElement('div');
     highlighterMenu.id = 'highlighterMenu';
     highlighterMenu.style.position = 'fixed';
-    highlighterMenu.style.height = '80px';
+    highlighterMenu.style.height = '150px';
     highlighterMenu.style.backgroundColor = 'white';
     highlighterMenu.style.border = '1px solid black';
     highlighterMenu.style.padding = '15px';
@@ -488,15 +523,66 @@ const toggleHighlighterButton = () => {
 
   // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
   if (isVertical) {
-    highlighterMenu.style.top = `${toolbarRect.top + 180}px`; // Y pozíció
+    highlighterMenu.style.top = `${toolbarRect.top}px`; // Y pozíció
     highlighterMenu.style.left = `${toolbarRect.right}px`; // X pozíció
     highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
   } else {
     highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-    highlighterMenu.style.width = `${(toolbarRect.width / 2) - 30}px`; // Szélesség/2  - 2x padding
+    highlighterMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
   }
 
+}
+
+const toggleColorPicker = (buttonId: string) => {
+  // Színválasztó megjelenítése
+  colorPickerMenu = document.getElementById('colorPickerMenu') as HTMLDivElement;
+  let toolbarRect = toolbar!.getBoundingClientRect(); // A toolbar pozíciója és mérete
+
+  let color = toolbar!.querySelector(`.${buttonId}`) as HTMLImageElement;
+  setPencilColor(color.style.backgroundColor);
+
+  if (!colorPickerMenu) {
+    colorPickerMenu = document.createElement('div');
+    colorPickerMenu.id = 'colorPickerMenu';
+    colorPickerMenu.style.position = 'fixed';
+    colorPickerMenu.style.height = '150px';
+    colorPickerMenu.style.backgroundColor = 'white';
+    colorPickerMenu.style.border = '1px solid black';
+    colorPickerMenu.style.padding = '15px';
+    colorPickerMenu.style.zIndex = '9999';
+    colorPickerMenu.style.borderRadius = '15px';
+    colorPickerMenu.style.color = 'black';
+    colorPickerMenu.style.fontFamily = 'Nunito'; // Betűtípus
+    colorPickerMenu.style.fontSize = '16px'; // Betűméret
+
+    colorPickerMenu.style.alignItems = 'center'; // Középre igazítás
+    colorPickerMenu.style.display = 'flex';
+    colorPickerMenu.style.flexDirection = 'column'; // Oszlopba rendezés
+
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Színválasztó ';
+    colorLabel.style.fontWeight = 'bold'; // Vastag betű
+    colorLabel.style.marginBottom = '10px'; // Térköz az előző elemhez
+
+    colorPickerMenu.appendChild(colorLabel);
+    document.body.appendChild(colorPickerMenu);
+
+  }
+  else {
+    colorPickerMenu.style.display = colorPickerMenu.style.display === 'none' ? 'flex' : 'none';
+  }
+
+  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  if (isVertical) {
+    colorPickerMenu.style.top = `${toolbarRect.bottom - parseInt(colorPickerMenu.style.height)}px`; // Y pozíció
+    colorPickerMenu.style.left = `${toolbarRect.right}px`; // X pozíció
+    colorPickerMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+  } else {
+    colorPickerMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
+    colorPickerMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
+    colorPickerMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
+  }
 }
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.action === 'toggleToolbar') {

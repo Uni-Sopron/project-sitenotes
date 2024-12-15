@@ -9,6 +9,7 @@ let lastY: number | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 let eraseSize: number = 25;
+let activeColor: string = '#6969C0';
 
 
 const setupCanvas = () => {
@@ -201,8 +202,9 @@ const stopPencilMode = () => {
   }
 
   const setPencilColor = (color: string) => {
+    activeColor = color;
     if (ctx) {
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = activeColor;
     }
   }
   
@@ -212,7 +214,7 @@ const stopPencilMode = () => {
     }
     if (ctx) {
       // Beállítjuk a rajzolás alapértelmezett tulajdonságait
-      ctx.strokeStyle = '#6969C0'; //#1974D2
+      ctx.strokeStyle = activeColor; //#1974D2
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.lineWidth = 30;
@@ -276,6 +278,10 @@ const stopPencilMode = () => {
     return isPencilModeActive;
   };
 
+  const getCTXColor = () => {
+    return ctx!.strokeStyle;
+  }
+
   export { 
     togglePencilMode, 
     toggleEraserMode, 
@@ -288,6 +294,7 @@ const stopPencilMode = () => {
     stopPencilMode,
     clearCanvas,
     setPencilSize,
-    setPencilColor};
+    setPencilColor,
+    getCTXColor};
   
   
