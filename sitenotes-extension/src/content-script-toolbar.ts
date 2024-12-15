@@ -1,4 +1,4 @@
-import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor } from './content-script-draw';
+import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor, getPencilSize, getEraserSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
 let toolbar: HTMLDivElement | null = null;
@@ -333,7 +333,7 @@ const toggleEraserButton = () => {
     sizeSlider.type = 'range';
     sizeSlider.min = '10';
     sizeSlider.max = '50';
-    sizeSlider.value = '25';
+    sizeSlider.value = getEraserSize().toString();
     sizeSlider.oninput = (e) => {
       const value = (e.target as HTMLInputElement).value;
       setEraserSize(parseInt(value));
@@ -415,7 +415,7 @@ const togglePencilButton = () => {
     sizeSlider.type = 'range';
     sizeSlider.min = '10';
     sizeSlider.max = '50';
-    sizeSlider.value = '25';
+    sizeSlider.value = getPencilSize().toString();
     sizeSlider.style.width = '120px';
     sizeSlider.oninput = (e) => {
       const value = (e.target as HTMLInputElement).value;

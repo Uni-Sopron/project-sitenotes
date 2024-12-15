@@ -8,8 +8,9 @@ let lastX: number | null = null;
 let lastY: number | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
-let eraseSize: number = 25;
+let activeEraseSize: number = 25;
 let activeColor: string = '#6969C0';
+let activeSize: number = 25;
 
 
 const setupCanvas = () => {
@@ -136,7 +137,7 @@ const toggleEraserMode = () => {
       ctx.beginPath();
       ctx.moveTo(lastX + window.scrollX, lastY + window.scrollY);
       ctx.lineTo(x + window.scrollX, y + window.scrollY);
-      ctx.lineWidth = eraseSize;
+      ctx.lineWidth = activeEraseSize;
       ctx.stroke(); // A vonal kirajzolása
     }
 
@@ -159,7 +160,7 @@ const toggleEraserMode = () => {
   };
   
  const setEraserSize = (size: number) => {
-    eraseSize = size;
+    activeEraseSize = size;
 };
 
 
@@ -196,6 +197,7 @@ const stopPencilMode = () => {
   };
 
   const setPencilSize = (size: number) => {
+    activeSize = size;
     if (ctx) {
       ctx.lineWidth = size;
     }
@@ -217,7 +219,7 @@ const stopPencilMode = () => {
       ctx.strokeStyle = activeColor; //#1974D2
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
-      ctx.lineWidth = 30;
+      ctx.lineWidth = activeSize;
     }
     addPencilEventListeners();
   };
@@ -282,6 +284,14 @@ const stopPencilMode = () => {
     return ctx!.strokeStyle;
   }
 
+  const getEraserSize = () => {
+    return activeEraseSize;
+  }
+
+  const getPencilSize = () => {
+    return activeSize;
+  }
+
   export { 
     togglePencilMode, 
     toggleEraserMode, 
@@ -295,6 +305,9 @@ const stopPencilMode = () => {
     clearCanvas,
     setPencilSize,
     setPencilColor,
-    getCTXColor};
+    getCTXColor,
+    getEraserSize,
+    getPencilSize
+  };
   
   
