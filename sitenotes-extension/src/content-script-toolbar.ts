@@ -1,12 +1,14 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor, getPencilSize, getEraserSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
 import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
+import { createColorSpectrum } from './content-script-colorpicker';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
 let highlighterMenu: HTMLDivElement | null = null;
 let colorPickerMenu: HTMLDivElement | null = null;
 let activeButton: string | null = null;
+let activeColorButton: string | null = null;
 let highlighterButton: HTMLButtonElement | null = null;
 let deleteHighlighterButton: HTMLButtonElement | null = null;
 let colorBox: HTMLSpanElement | null = null;
@@ -25,8 +27,13 @@ const startProcess = (buttonId: string) => {
     }
   }
   activeButton = buttonId;
+
   if (buttonId != 'color-button-1' && buttonId != 'color-button-2' && buttonId != 'color-button-3') {
   setButtonOpacity(buttonId, 0.5);
+  }
+  if (buttonId === 'color-button-1' || buttonId === 'color-button-2' || buttonId === 'color-button-3') {
+    activeColorButton = buttonId;
+    updateButtonOpacity(activeColorButton);
   }
 
   // A gomb ID-jának alapján indítsd el a megfelelő folyamatot
@@ -44,7 +51,11 @@ const startProcess = (buttonId: string) => {
       isMovable = true;
       break
     case 'color-button-1':
+      toggleColorPicker(buttonId);
+      break;
     case 'color-button-2':
+      toggleColorPicker(buttonId);
+      break;
     case 'color-button-3':
       toggleColorPicker(buttonId);
       break;
@@ -99,16 +110,27 @@ const setButtonOpacity = (buttonId: string, opacity: number): void => {
   }
 }
 
-// const setColorIcon = (buttonId: string, color: string) => {
-//   // A gomb színének beállítása
-//   setPencilColor(color);
+const updateButtonOpacity = (activeButtonId: string) => {
+  const buttons = ['color-button-1', 'color-button-2', 'color-button-3'];
+  buttons.forEach((buttonId) => {
+    if (buttonId === activeButtonId) {
+      setButtonOpacity(buttonId, 1); // Aktív gomb
+    } else {
+      setButtonOpacity(buttonId, 0.5); // Inaktív gombok
+    }
+  });
+};
 
-//   const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
-//   if (button) {
-//     button.style.backgroundColor = color;    
-//   }
+const setColorIcon = (buttonId: string, color: string) => {
+  // A gomb színének beállítása
+  setPencilColor(color);
 
-// }
+  const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
+  if (button) {
+    button.style.backgroundColor = color;    
+  }
+
+}
 
 // TOOLBAR FUNCTIONALITY
 const createToolbar = () => {
@@ -282,6 +304,12 @@ const createToolbar = () => {
       }
 
     });
+
+    if (activeColorButton === null) {
+      activeColorButton = 'color-button-1';
+      updateButtonOpacity(activeColorButton);
+    } 
+    
   };
 
   updateButtonsConfig();
@@ -566,11 +594,15 @@ const toggleColorPicker = (buttonId: string) => {
     colorLabel.style.marginBottom = '10px'; // Térköz az előző elemhez
 
     colorPickerMenu.appendChild(colorLabel);
+    let spectrum = createColorSpectrum(4, 10, (color: string) => {setColorIcon(buttonId, color);});
+    colorPickerMenu.appendChild(spectrum);
     document.body.appendChild(colorPickerMenu);
 
   }
   else {
     colorPickerMenu.style.display = colorPickerMenu.style.display === 'none' ? 'flex' : 'none';
+    colorPickerMenu.removeChild(colorPickerMenu.querySelector('div') as HTMLDivElement);
+    colorPickerMenu.appendChild(createColorSpectrum(4, 10, (color: string) => {setColorIcon(buttonId, color);}));
   }
 
   // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
