@@ -79,6 +79,8 @@ const handleImageUpload = () => {
                     menu.style.display = 'none'; // Initially hidden
                     menu.style.zIndex = '9999';
                     menu.style.borderRadius = '10px';
+
+
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Törlés';
                     deleteButton.style.marginLeft = '0px';

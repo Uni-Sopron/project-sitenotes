@@ -1,6 +1,6 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor, getPencilSize, getEraserSize } from './content-script-draw';
 import { handleImageUpload } from './content-script-img';
-import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive } from './content-script-highlighter';
+import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive, setHighlighterColor } from './content-script-highlighter';
 import { createColorSpectrum } from './content-script-colorpicker';
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
@@ -29,7 +29,7 @@ const startProcess = (buttonId: string) => {
   activeButton = buttonId;
 
   if (buttonId != 'color-button-1' && buttonId != 'color-button-2' && buttonId != 'color-button-3') {
-  setButtonOpacity(buttonId, 0.5);
+    setButtonOpacity(buttonId, 0.5);
   }
   if (buttonId === 'color-button-1' || buttonId === 'color-button-2' || buttonId === 'color-button-3') {
     activeColorButton = buttonId;
@@ -93,7 +93,7 @@ const stopProcess = () => {
       // Mozgatás kikapcsoló
       isMovable = false;
       break;
-    
+
     case 'color-button-1':
     case 'color-button-2':
     case 'color-button-3':
@@ -124,10 +124,10 @@ const updateButtonOpacity = (activeButtonId: string) => {
 const setColorIcon = (buttonId: string, color: string) => {
   // A gomb színének beállítása
   setPencilColor(color);
-
+  setHighlighterColor(color);
   const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
   if (button) {
-    button.style.backgroundColor = color;    
+    button.style.backgroundColor = color;
   }
 
 }
@@ -308,8 +308,8 @@ const createToolbar = () => {
     if (activeColorButton === null) {
       activeColorButton = 'color-button-1';
       updateButtonOpacity(activeColorButton);
-    } 
-    
+    }
+
   };
 
   updateButtonsConfig();
@@ -355,7 +355,7 @@ const toggleEraserButton = () => {
     sizeLabel.style.fontSize = '16px'; // Betűméret
     sizeLabel.style.fontWeight = 'bold'; // Vastag betű
 
-    
+
 
     const sizeSlider = document.createElement('input');
     sizeSlider.type = 'range';
@@ -394,15 +394,46 @@ const toggleEraserButton = () => {
     eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
   }
 
-  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+
+  const windowWidth = window.innerWidth; // Böngésző szélessége
+  const windowHeight = window.innerHeight; // Böngésző magassága
+
+  // Alapértelmezett pozicionálás
   if (isVertical) {
-    eraserMenu.style.top = `${toolbarRect.bottom - parseInt(eraserMenu.style.height)}px`; // Y pozíció
+    eraserMenu.style.top = `${toolbarRect.top + (toolbarRect.height / 2)}px`; // Y pozíció
     eraserMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.height / 2)}px`; // Szélesség/2  - 2x padding
+    eraserMenu.style.width = `${(toolbarRect.height / 2)}px`; // Szélesség/2
   } else {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-    eraserMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
-    eraserMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
+    eraserMenu.style.left = `${toolbarRect.right - (toolbarRect.width / 1.80)}px`; // X pozíció
+    eraserMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2
+  }
+
+  // Kilógás ellenőrzése és korrekció
+  const menuRect = eraserMenu.getBoundingClientRect();
+
+  // Jobb oldal kilóg
+  if (menuRect.right > windowWidth) {
+    if (isVertical) {
+      eraserMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra helyezés
+    } else {
+      eraserMenu.style.left = `${toolbarRect.left}px`; // Bal oldalra helyezés
+    }
+  }
+
+  // Alsó rész kilóg
+  if (menuRect.bottom > windowHeight) {
+    eraserMenu.style.top = `${toolbarRect.top - menuRect.height}px`; // Felfelé helyezés
+  }
+
+  // Bal oldal kilóg
+  if (menuRect.left < 0) {
+    eraserMenu.style.left = `${toolbarRect.right}px`; // Vissza a jobb oldalra
+  }
+
+  // Felső rész kilóg
+  if (menuRect.top < 0) {
+    eraserMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
   }
 
 
@@ -471,18 +502,49 @@ const togglePencilButton = () => {
   } else {
     pencilMenu.style.display = pencilMenu.style.display === 'none' ? 'flex' : 'none';
   }
-  
+
   colorBox!.style.backgroundColor = getCTXColor() as string;
 
-  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+
+  const windowWidth = window.innerWidth; // Böngésző szélessége
+  const windowHeight = window.innerHeight; // Böngésző magassága
+
+  // Alapértelmezett pozicionálás
   if (isVertical) {
     pencilMenu.style.top = `${toolbarRect.top}px`; // Y pozíció
     pencilMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-    pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    pencilMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2
   } else {
     pencilMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     pencilMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-    pencilMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
+    pencilMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2
+  }
+
+  // Pozíció ellenőrzése és kilógás kezelése
+  const menuRect = pencilMenu.getBoundingClientRect();
+
+  // Jobb oldal kilóg
+  if (menuRect.right > windowWidth) {
+    if (isVertical) {
+      pencilMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra helyezés
+    } else {
+      pencilMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra helyezés
+    }
+  }
+
+  // Alsó rész kilóg
+  if (menuRect.bottom > windowHeight) {
+    pencilMenu.style.top = `${toolbarRect.top - menuRect.height}px`; // Felfelé helyezés
+  }
+
+  // Bal oldal kilóg
+  if (menuRect.left < 0) {
+    pencilMenu.style.left = `${toolbarRect.right}px`; // Vissza a jobb oldalra
+  }
+
+  // Felső rész kilóg
+  if (menuRect.top < 0) {
+    pencilMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
   }
 }
 
@@ -553,12 +615,45 @@ const toggleHighlighterButton = () => {
   if (isVertical) {
     highlighterMenu.style.top = `${toolbarRect.top}px`; // Y pozíció
     highlighterMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-    highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    highlighterMenu.style.width = `${(toolbarRect.height / 2) - 30}px`;
   } else {
     highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
     highlighterMenu.style.left = `${toolbarRect.left}px`; // X pozíció
-    highlighterMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
+    highlighterMenu.style.width = `${(toolbarRect.width / 2)}px`;
   }
+
+  // Ellenőrizzük, hogy a menü kilóg-e az ablakból
+  const menuRect = highlighterMenu.getBoundingClientRect();
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  // Jobb oldal kilóg
+  if (menuRect.right > windowWidth) {
+    if (isVertical) {
+      highlighterMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra helyezés
+    } else {
+      highlighterMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra
+    }
+  }
+
+  // Alsó rész kilóg
+  if (menuRect.bottom > windowHeight) {
+    highlighterMenu.style.top = `${toolbarRect.top - menuRect.height}px`; // Felfelé helyezés
+  }
+
+  // Bal oldal kilóg
+  if (menuRect.left < 0) {
+    highlighterMenu.style.left = `${toolbarRect.right}px`; // Vissza a jobb oldalra
+  }
+
+  // Felső rész kilóg
+  if (menuRect.top < 0) {
+    highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
+  }
+
+
+
+
 
 }
 
@@ -569,7 +664,7 @@ const toggleColorPicker = (buttonId: string) => {
 
   let color = toolbar!.querySelector(`.${buttonId}`) as HTMLImageElement;
   setPencilColor(color.style.backgroundColor);
-
+  setHighlighterColor(color.style.backgroundColor)
   if (!colorPickerMenu) {
     colorPickerMenu = document.createElement('div');
     colorPickerMenu.id = 'colorPickerMenu';
@@ -594,7 +689,7 @@ const toggleColorPicker = (buttonId: string) => {
     colorLabel.style.marginBottom = '10px'; // Térköz az előző elemhez
 
     colorPickerMenu.appendChild(colorLabel);
-    let spectrum = createColorSpectrum(4, 10, (color: string) => {setColorIcon(buttonId, color);});
+    let spectrum = createColorSpectrum(4, 10, (color: string) => { setColorIcon(buttonId, color); });
     colorPickerMenu.appendChild(spectrum);
     document.body.appendChild(colorPickerMenu);
 
@@ -602,18 +697,47 @@ const toggleColorPicker = (buttonId: string) => {
   else {
     colorPickerMenu.style.display = colorPickerMenu.style.display === 'none' ? 'flex' : 'none';
     colorPickerMenu.removeChild(colorPickerMenu.querySelector('div') as HTMLDivElement);
-    colorPickerMenu.appendChild(createColorSpectrum(4, 10, (color: string) => {setColorIcon(buttonId, color);}));
+    colorPickerMenu.appendChild(createColorSpectrum(4, 10, (color: string) => { setColorIcon(buttonId, color); }));
   }
 
-  // mivel a mozgatas miatt ezt felul kell irni, ezert ezt itthagyom
+  // Alapértelmezett pozicionálás
   if (isVertical) {
-    colorPickerMenu.style.top = `${toolbarRect.bottom - parseInt(colorPickerMenu.style.height)}px`; // Y pozíció
+    colorPickerMenu.style.top = `${toolbarRect.top + (toolbarRect.height / 2)}px`; // Y pozíció
     colorPickerMenu.style.left = `${toolbarRect.right}px`; // X pozíció
-    colorPickerMenu.style.width = `${(toolbarRect.height / 2) - 30}px`; // Szélesség/2  - 2x padding
+    colorPickerMenu.style.width = `${(toolbarRect.height / 2) - 30}px`;
   } else {
     colorPickerMenu.style.top = `${toolbarRect.bottom}px`; // Y pozíció
-    colorPickerMenu.style.left = `${toolbarRect.right - toolbarRect.width / 2}px`; // X pozíció
-    colorPickerMenu.style.width = `${(toolbarRect.width / 2)}px`; // Szélesség/2  - 2x padding
+    colorPickerMenu.style.left = `${toolbarRect.right - (toolbarRect.width / 1.80)}px`; // X pozíció
+    colorPickerMenu.style.width = `${(toolbarRect.width / 2)}px`;
+  }
+
+  // Pozíció ellenőrzése és korrekció kilógás esetén
+  const menuRect = colorPickerMenu.getBoundingClientRect();
+
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  // Jobb oldal kilóg
+  if (menuRect.right > windowWidth) {
+    if (isVertical) {
+      colorPickerMenu.style.left = `${toolbarRect.left - menuRect.width}px`; // Bal oldalra helyezés
+    } else {
+      colorPickerMenu.style.left = `${toolbarRect.left}px`; // Bal oldalra
+    }
+  }
+
+  // Alsó rész kilóg
+  if (menuRect.bottom > windowHeight) {
+    colorPickerMenu.style.top = `${toolbarRect.top - menuRect.height}px`; // Felfelé helyezés
+  }
+
+  // Bal oldal kilóg
+  if (menuRect.left < 0) {
+    colorPickerMenu.style.left = `${toolbarRect.right}px`; // Vissza a jobb oldalra
+  }
+
+  // Felső rész kilóg
+  if (menuRect.top < 0) {
+    colorPickerMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
   }
 }
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
