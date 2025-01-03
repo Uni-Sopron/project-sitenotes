@@ -247,27 +247,51 @@ const saveImage = async (url: string, imageData: { id: number; src: string; posi
     await saveImageData(STORE_IMAGES, image);
   };
 
-const openImageDatabase = async (): Promise<IDBDatabase> => {
+  const openImageDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME_IMG, DB_VERSION_IMG);
-  
-      request.onupgradeneeded = (event: any) => {
-        const db = event.target.result;
-  
-        if (!db.objectStoreNames.contains(STORE_IMAGES)) {
-          db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
-        }
-      };
-  
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-  
-      request.onerror = (event: any) => {
-        reject(event.target.error);
-      };
+        const request = indexedDB.open(DB_NAME_IMG, DB_VERSION_IMG);
+
+        request.onupgradeneeded = (event: any) => {
+            const db = event.target.result;
+
+            // Ellenőrizzük, hogy az `images` tábla létezik-e, ha nem, hozzuk létre
+            if (!db.objectStoreNames.contains(STORE_IMAGES)) {
+                db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
+                console.log(`Object store "${STORE_IMAGES}" created.`);
+            }
+        };
+
+        request.onsuccess = () => {
+            const db = request.result;
+
+            // Ha új oldalra nyitjuk az adatbázist, ellenőrizzük újra az `images` táblát
+            if (!db.objectStoreNames.contains(STORE_IMAGES)) {
+                const version = db.version + 1; // Verzió emelése szükséges új tábla létrehozásához
+                db.close();
+
+                const upgradeRequest = indexedDB.open(DB_NAME_IMG, version);
+                upgradeRequest.onupgradeneeded = (upgradeEvent: any) => {
+                    const upgradeDb = upgradeEvent.target.result;
+
+                    if (!upgradeDb.objectStoreNames.contains(STORE_IMAGES)) {
+                        upgradeDb.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
+                        console.log(`Object store "${STORE_IMAGES}" created during upgrade.`);
+                    }
+                };
+
+                upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
+                upgradeRequest.onerror = (event: any) => reject(event.target.error);
+            } else {
+                resolve(db); // Az adatbázis már tartalmazza a `STORE_IMAGES` táblát
+            }
+        };
+
+        request.onerror = (event: any) => {
+            reject(event.target.error);
+        };
     });
-  };
+};
+
 
 const saveImageData = async (storeName: string, data: any): Promise<void> => {
     const db = await openImageDatabase();
