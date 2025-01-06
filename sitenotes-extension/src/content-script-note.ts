@@ -1,5 +1,5 @@
 const DB_NAME_NOTE = 'siteNotesDB';
-const DB_VERSION_NOTE = 1;
+const DB_VERSION_NOTE = 2;
 const STORE_NOTES = 'notes';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
