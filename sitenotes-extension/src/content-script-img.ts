@@ -12,6 +12,8 @@ const loadAllImages = async () => {
 
         request.onsuccess = () => {
             const images = request.result;
+            console.log('Loaded images from DB:', images);
+
             if (images && images.length > 0) {
                 images.forEach((imageData) => {
                     // Hozzuk létre és jelenítsük meg a képet
@@ -28,10 +30,11 @@ const loadAllImages = async () => {
 
                     const img = new Image();
                     img.src = imageData.src;
+                    console.log('Image source:', img.src);
                     img.style.width = '100%';
                     img.style.height = '100%';
                     img.style.objectFit = 'contain';
-                    img.style.transform = imageData.transform || '';
+                    img.style.transform = `rotate(${imageData.rotation || 0}deg) scaleX(${imageData.flip || 1})`;
 
                     wrapper.appendChild(img);
                     document.body.appendChild(wrapper);
@@ -52,7 +55,11 @@ const loadAllImages = async () => {
     }
 };
 
-window.addEventListener('DOMContentLoaded', loadAllImages);
+window.addEventListener('load', async () => {
+    console.log('Page fully loaded. Initializing image loader...');
+    await loadAllImages();
+    console.log('Images have been successfully loaded.');
+});
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
@@ -60,18 +67,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             handleImageUpload();
             sendResponse({ status: 'success' });
         }
-        if (message.action === 'loadImage') {
-            loadImage(message.id);
+        if (message.action === 'loadAllImages') {
+            loadAllImages();
             sendResponse({ status: 'success' });
         }
         if (message.action === 'addImage') {
             handleImageUpload();
             sendResponse({ status: 'success' });
         }
-        // if (message.action === 'updateImage') {
-        //     updateImageInDB(message.imageId, message.updatedData);
-        //     sendResponse({ status: 'success' });
-        // }
+        if (message.action === 'updateImage') {
+            updateImageInDB(message.imageId, message.updatedData);
+            sendResponse({ status: 'success' });
+        }
         if (message.action === 'deleteImage') {
             deleteImageFromDB(message.imageId);
             sendResponse({ status: 'success' });
@@ -82,6 +89,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
     return true; // Keep the message channel open
 });
+
+window.addEventListener('DOMContentLoaded', async () => {
+    console.log('Page loaded. Starting image load...');
+    await loadAllImages();
+});
+
 
 const handleImageUpload = () => {
     const input = document.createElement('input');
@@ -191,7 +204,6 @@ const handleImageUpload = () => {
                         saveCurrentState(wrapper, imageData.id); // Mentés
                     };
                     
-
                     menu.appendChild(deleteButton);
                     menu.appendChild(resizeButton);
                     menu.appendChild(rotateButton);
@@ -387,59 +399,6 @@ const saveImageData = async (storeName: string, data: any): Promise<void> => {
     }
 };
 
-const getImageData = async (key: string): Promise<any> => {
-    const db = await openImageDatabase();
-    const transaction = db.transaction('images', 'readonly');
-    const store = transaction.objectStore('images');
-  
-    const request = store.get(key);
-  
-    return new Promise((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = (event) => reject((event.target as IDBRequest).error);
-    });
-  };
-
-  const loadImage = async (id: number) => {
-    try {
-        const imageData = await getImageData(id.toString());
-        if (imageData) {
-            const wrapper = document.createElement('div');
-            wrapper.style.position = 'absolute';
-            wrapper.style.left = `${imageData.position.x}px`;
-            wrapper.style.top = `${imageData.position.y}px`;
-            wrapper.style.width = `${imageData.size.width}px`;
-            wrapper.style.height = `${imageData.size.height}px`;
-            wrapper.style.border = '1px dashed gray';
-            wrapper.style.boxSizing = 'border-box';
-            wrapper.style.overflow = 'visible';
-            wrapper.style.zIndex = '9991';
-
-            const img = new Image();
-            img.src = imageData.src || ''; // Ellenőrizd az src-t
-            if (!img.src) {
-                console.error('Image src is missing in loaded data.');
-                return;
-            }
-
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            img.style.transform = imageData.transform || ''; // Forgatási állapot betöltése
-
-            wrapper.appendChild(img);
-            document.body.appendChild(wrapper);
-
-            // Add drag & resize events, and save the state
-            addDragAndResize(wrapper, imageData.id);
-        } else {
-            console.log('Image not found');
-        }
-    } catch (error) {
-        console.error('Failed to load image:', error);
-    }
-};
-
 const addDragAndResize = (wrapper: HTMLElement, imageId: number) => {
     const img = wrapper.querySelector('img') as HTMLImageElement;
     const resizeHandle = document.createElement('div');
@@ -519,6 +478,24 @@ const addDragAndResize = (wrapper: HTMLElement, imageId: number) => {
     });
 };
 
+const updateImageInDB = async (imageId: number, updatedData: any) => {
+    const db = await openImageDatabase();
+    const transaction = db.transaction('images', 'readwrite');
+    const store = transaction.objectStore('images');
+
+    const request = store.get(imageId);
+
+    request.onsuccess = () => {
+        const data = request.result;
+        if (data) {
+            Object.assign(data, updatedData);
+            store.put(data);
+        } else {
+            console.error('Image not found in DB for updating:', imageId);
+        }
+    };
+};
+
 const saveCurrentState = async (wrapper: HTMLElement, imageId: number) => {
     const position = {
         x: parseInt(wrapper.style.left, 10),
@@ -528,9 +505,11 @@ const saveCurrentState = async (wrapper: HTMLElement, imageId: number) => {
         width: parseInt(wrapper.style.width, 10),
         height: parseInt(wrapper.style.height, 10),
     };
+
     const img = wrapper.querySelector('img');
-    const transform = img?.style.transform || '';
-    const src = img?.src || ''; // Az src mentése
+    const rotation = parseFloat(wrapper.dataset.rotation || '0');
+    const flip = wrapper.dataset.flip || '1';
+    const src = img?.src || '';
 
     if (!src) {
         console.error('Image src is missing when saving state.');
@@ -541,11 +520,12 @@ const saveCurrentState = async (wrapper: HTMLElement, imageId: number) => {
         id: imageId,
         position,
         size,
-        transform,
-        src, // Adjunk hozzá egy új mezőt
+        rotation,
+        flip,
+        src,
     };
 
-    await saveImageData('images', updatedData);
+    await updateImageInDB(imageId, updatedData);
 };
 
 const deleteImageFromDB = async (imageId: number): Promise<void> => {
@@ -561,5 +541,3 @@ const deleteImageFromDB = async (imageId: number): Promise<void> => {
     });
 };
 
-
-export { handleImageUpload }; // export funkciót nem szereti a debugger
