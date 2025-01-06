@@ -1,59 +1,127 @@
 console.log('Content Image script loaded');
 const loadAllImages = async () => {
-    // Site loaded
-    console.log('Site loaded');
+    console.log('Loading all images...');
     try {
-        console.log('Loading all images...');
         const db = await openImageDatabase();
         const transaction = db.transaction('images', 'readonly');
         const store = transaction.objectStore('images');
-
         const request = store.getAll();
 
         request.onsuccess = () => {
-            const images = request.result;
-            console.log('Loaded images from DB:', images);
-
-            if (images && images.length > 0) {
-                images.forEach((imageData) => {
-                    // Hozzuk létre és jelenítsük meg a képet
-                    const wrapper = document.createElement('div');
-                    wrapper.style.position = 'absolute';
-                    wrapper.style.left = `${imageData.position.x}px`;
-                    wrapper.style.top = `${imageData.position.y}px`;
-                    wrapper.style.width = `${imageData.size.width}px`;
-                    wrapper.style.height = `${imageData.size.height}px`;
-                    wrapper.style.border = '1px dashed gray';
-                    wrapper.style.boxSizing = 'border-box';
-                    wrapper.style.overflow = 'visible';
-                    wrapper.style.zIndex = '9991';
-
-                    const img = new Image();
-                    img.src = imageData.src;
-                    console.log('Image source:', img.src);
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'contain';
-                    img.style.transform = `rotate(${imageData.rotation || 0}deg) scaleX(${imageData.flip || 1})`;
-
-                    wrapper.appendChild(img);
-                    document.body.appendChild(wrapper);
-
-                    // Drag and resize functionality hozzáadása
-                    addDragAndResize(wrapper, imageData.id);
-
-                    console.log('Image loaded:', imageData.id);
-                });
-            }
+            const images = request.result.filter((image: any) => image.url === window.location.href);
+            console.log('Images loaded for this URL:', images);
+            images.forEach(renderImage);
         };
 
         request.onerror = (event) => {
             console.error('Error loading images:', (event.target as IDBRequest).error);
         };
     } catch (error) {
-        console.error('Failed to load all images:', error);
+        console.error('Failed to load images:', error);
     }
 };
+
+const renderImage = (imageData: any) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = `${imageData.position.x}px`;
+    wrapper.style.top = `${imageData.position.y}px`;
+    wrapper.style.width = `${imageData.size.width}px`;
+    wrapper.style.height = `${imageData.size.height}px`;
+    wrapper.style.border = '1px dashed gray';
+    wrapper.style.overflow = 'visible';
+    wrapper.style.zIndex = '9991';
+    wrapper.dataset.rotation = imageData.rotation || '0';
+    wrapper.dataset.flip = imageData.flip || '1';
+
+    const img = new Image();
+    img.src = imageData.src;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+    img.style.transform = `rotate(${imageData.rotation || 0}deg) scaleX(${imageData.flip || 1})`;
+
+    wrapper.appendChild(img);
+    document.body.appendChild(wrapper);
+
+    addDragAndResize(wrapper, imageData.id);
+
+    wrapper.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        showContextMenu(wrapper, imageData.id);
+    });
+};
+
+const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
+    const menu = document.createElement('div');
+    menu.style.position = 'absolute';
+    menu.style.backgroundColor = 'white';
+    menu.style.border = '1px solid gray';
+    menu.style.padding = '5px';
+    menu.style.zIndex = '10000';
+
+    // Törlés gomb
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Törlés';
+    deleteButton.onclick = async () => {
+        document.body.removeChild(wrapper);
+        document.body.removeChild(menu);
+        await deleteImageFromDB(imageId);
+    };
+
+    // Forgatás gomb
+    const rotateButton = document.createElement('button');
+    rotateButton.textContent = 'Forgatás';
+    rotateButton.onclick = async () => {
+        const img = wrapper.querySelector('img');
+        if (img) {
+            const currentRotation = parseFloat(img.dataset.rotation || '0');
+            const newRotation = (currentRotation + 90) % 360;
+            img.dataset.rotation = newRotation.toString();
+            img.style.transform = `rotate(${newRotation}deg) scaleX(${img.dataset.flip || 1})`;
+            await saveCurrentState(wrapper, imageId);
+        }
+    };
+
+    // Tükrözés gomb
+    const flipButton = document.createElement('button');
+    flipButton.textContent = 'Tükrözés';
+    flipButton.onclick = async () => {
+        const img = wrapper.querySelector('img');
+        if (img) {
+            const currentFlip = parseFloat(img.dataset.flip || '1');
+            const newFlip = currentFlip === 1 ? -1 : 1;
+            img.dataset.flip = newFlip.toString();
+            img.style.transform = `rotate(${img.dataset.rotation || 0}deg) scaleX(${newFlip})`;
+            await saveCurrentState(wrapper, imageId);
+        }
+    };
+
+    // Méretezés gomb
+    const resizeButton = document.createElement('button');
+    resizeButton.textContent = 'Méretezés Arányosan';
+    let isAspectRatioLocked = false;
+    resizeButton.onclick = () => {
+        isAspectRatioLocked = !isAspectRatioLocked;
+        resizeButton.style.backgroundColor = isAspectRatioLocked ? 'lightgreen' : '';
+    };
+
+    menu.appendChild(deleteButton);
+    menu.appendChild(rotateButton);
+    menu.appendChild(flipButton);
+    menu.appendChild(resizeButton);
+
+    menu.style.top = `${wrapper.offsetTop + wrapper.offsetHeight + 10}px`;
+    menu.style.left = `${wrapper.offsetLeft}px`;
+
+    document.body.appendChild(menu);
+
+    // Menü elrejtése kattintásra
+    document.addEventListener('click', () => {
+        menu.remove();
+    }, { once: true });
+};
+
 
 window.addEventListener('load', async () => {
     console.log('Page fully loaded. Initializing image loader...');
