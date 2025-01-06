@@ -6,13 +6,11 @@ const loadAllImages = async () => {
         const transaction = db.transaction('images', 'readonly');
         const store = transaction.objectStore('images');
         const request = store.getAll();
-
         request.onsuccess = () => {
             const images = request.result.filter((image: any) => image.url === window.location.href);
             console.log('Images loaded for this URL:', images);
             images.forEach(renderImage);
         };
-
         request.onerror = (event) => {
             console.error('Error loading images:', (event.target as IDBRequest).error);
         };
@@ -261,7 +259,7 @@ const handleImageUpload = () => {
                         const currentRotation = parseFloat(resizedImg.style.transform.replace('rotate(', '').replace('deg)', '') || '0');
                         const newRotation = currentRotation + 90;
                         resizedImg.style.transform = `rotate(${newRotation}deg)`;
-                        saveCurrentState(wrapper, imageData.id); // Mentés
+                        saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
                     };
                     
                     const flipButton = document.createElement('button');
@@ -269,7 +267,7 @@ const handleImageUpload = () => {
                     flipButton.onclick = () => {
                         const currentTransform = resizedImg.style.transform || '';
                         resizedImg.style.transform = `${currentTransform} scaleX(-1)`;
-                        saveCurrentState(wrapper, imageData.id); // Mentés
+                        saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
                     };
                     
                     menu.appendChild(deleteButton);
@@ -575,9 +573,14 @@ const saveCurrentState = async (wrapper: HTMLElement, imageId: number) => {
     };
 
     const img = wrapper.querySelector('img');
-    const rotation = parseFloat(wrapper.dataset.rotation || '0');
-    const flip = wrapper.dataset.flip || '1';
-    const src = img?.src || '';
+    if (!img) {
+        console.error('Image element missing when saving state.');
+        return;
+    }
+
+    const rotation = parseFloat(img.dataset.rotation || '0'); // Use img.dataset
+    const flip = parseFloat(img.dataset.flip || '1'); // Use img.dataset
+    const src = img.src;
 
     if (!src) {
         console.error('Image src is missing when saving state.');
@@ -593,6 +596,7 @@ const saveCurrentState = async (wrapper: HTMLElement, imageId: number) => {
         src,
     };
 
+    console.log('Saving image state:', updatedData); // Debug log
     await updateImageInDB(imageId, updatedData);
 };
 
