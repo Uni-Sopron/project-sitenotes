@@ -298,7 +298,18 @@ function addNoteToPage(
     anchorButton.onclick = function() {
         isAnchored = !isAnchored;
         anchorButton.style.opacity = isAnchored ? '1' : '0.5';
-        noteDiv.style.position = isAnchored ? 'absolute' : 'fixed';
+        const rect = noteDiv.getBoundingClientRect(); // Get the current position of the note
+        if (isAnchored) {
+            // Switch to absolute and adjust for scroll position
+            noteDiv.style.position = 'absolute';
+            noteDiv.style.left = `${rect.left + window.scrollX}px`;
+            noteDiv.style.top = `${rect.top + window.scrollY}px`;
+        } else {
+            // Switch to fixed, maintain its current position on the screen
+            noteDiv.style.position = 'fixed';
+            noteDiv.style.left = `${rect.left}px`;
+            noteDiv.style.top = `${rect.top}px`;
+        }
     };
     
     // Change the color of the note div
