@@ -190,11 +190,11 @@ function addNoteToPage(
     downloadButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/download.svg')}")`
     buttonDiv.appendChild(downloadButton);
     
-    // Remove text button
-    const removeTextButton = document.createElement('button');
-    removeTextButton.className = 'Buttons';
-    removeTextButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/trash.svg')}")`;
-    buttonDiv.appendChild(removeTextButton);
+    // Delete button - should be close button instead
+    const closeButton = document.createElement('button');
+    closeButton.className = 'Buttons';
+    closeButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/X.svg')}")`;
+    buttonDiv.appendChild(closeButton);
     
     // Editable button for the text area
     const editButton = document.createElement('button');
@@ -207,12 +207,12 @@ function addNoteToPage(
     infoButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/info.svg')}")`;
     infoButton.className = 'Buttons';
     buttonDiv.appendChild(infoButton);
-
-    // Delete button - should be close button instead
-    const closeButton = document.createElement('button');
-    closeButton.className = 'Buttons';
-    closeButton.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/X.svg')}")`;
-    buttonDiv.appendChild(closeButton);
+    
+    // Remove the note
+    const deleteNote = document.createElement('button');
+    deleteNote.className = 'Buttons';
+    deleteNote.style.backgroundImage = `url("${chrome.runtime.getURL('note-icons/trash.svg')}")`;
+    buttonDiv.appendChild(deleteNote);
     
     // END OF BUTTONS
     
@@ -298,7 +298,18 @@ function addNoteToPage(
     anchorButton.onclick = function() {
         isAnchored = !isAnchored;
         anchorButton.style.opacity = isAnchored ? '1' : '0.5';
-        noteDiv.style.position = isAnchored ? 'absolute' : 'fixed';
+        const rect = noteDiv.getBoundingClientRect(); // Get the current position of the note
+        if (isAnchored) {
+            // Switch to absolute and adjust for scroll position
+            noteDiv.style.position = 'absolute';
+            noteDiv.style.left = `${rect.left + window.scrollX}px`;
+            noteDiv.style.top = `${rect.top + window.scrollY}px`;
+        } else {
+            // Switch to fixed, maintain its current position on the screen
+            noteDiv.style.position = 'fixed';
+            noteDiv.style.left = `${rect.left}px`;
+            noteDiv.style.top = `${rect.top}px`;
+        }
     };
     
     // Change the color of the note div
@@ -411,7 +422,7 @@ function addNoteToPage(
 
     // info alert for development, so everybody knows
     infoButton.onclick = function() {
-        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the note. \n\n\tX: Close the note. \n\n\tReadonly: Make the note editable or readonly.');
+        alert('Functions: \n\tAnchor: Anchor the note on a given position. \n\n\tColor: Change the color of the note. \n\n\tUpload: Upload a note from a .txt file. It needs a "Title:" and "Note:" part. (Try what it looks like with download) \n\n\tDownload: Download the note as a .txt file. \n\n\tTrash: Delete the note. \n\n\tX: Iconize the note. \n\n\tReadonly: Make the note editable or readonly.');
     }
 
     // color palette input
@@ -426,7 +437,7 @@ function addNoteToPage(
     }
 
     // This is the delete button now instead
-    removeTextButton.onclick = function () {
+    deleteNote.onclick = function () {
         titleArea.value = '';
         textArea.value = '';
 
