@@ -310,9 +310,7 @@ const createToolbar = () => {
       activeColorButton = 'color-button-1';
       updateButtonOpacity(activeColorButton);
     }
-
   };
-
   updateButtonsConfig();
   shadowRoot.appendChild(toolbar);
 };
@@ -347,7 +345,6 @@ const toggleEraserButton = () => {
     eraserMenu.style.fontFamily = 'Nunito'; // Betűtípus
     eraserMenu.style.fontSize = '16px'; // Betűméret
 
-
     // Radír méret beállító
     const sizeLabel = document.createElement('label');
     sizeLabel.textContent = 'Radír mérete: ';
@@ -355,8 +352,6 @@ const toggleEraserButton = () => {
     sizeLabel.style.fontFamily = 'Nunito'; // Betűtípus
     sizeLabel.style.fontSize = '16px'; // Betűméret
     sizeLabel.style.fontWeight = 'bold'; // Vastag betű
-
-
 
     const sizeSlider = document.createElement('input');
     sizeSlider.type = 'range';
@@ -385,7 +380,6 @@ const toggleEraserButton = () => {
     clearButton.style.display = 'block'; // Külön sorba kerül a gomb
     clearButton.style.textAlign = 'left'; // Balra igazított szöveg
 
-
     eraserMenu.appendChild(sizeLabel);
     eraserMenu.appendChild(sizeSlider);
     eraserMenu.appendChild(clearButton);
@@ -394,7 +388,6 @@ const toggleEraserButton = () => {
   } else {
     eraserMenu.style.display = eraserMenu.style.display === 'none' ? 'block' : 'none';
   }
-
 
   const windowWidth = window.innerWidth; // Böngésző szélessége
   const windowHeight = window.innerHeight; // Böngésző magassága
@@ -436,8 +429,6 @@ const toggleEraserButton = () => {
   if (menuRect.top < 0) {
     eraserMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
   }
-
-
 }
 
 const togglePencilButton = () => {
@@ -651,11 +642,6 @@ const toggleHighlighterButton = () => {
   if (menuRect.top < 0) {
     highlighterMenu.style.top = `${toolbarRect.bottom}px`; // Vissza az alsó oldalra
   }
-
-
-
-
-
 }
 
 const toggleColorPicker = (buttonId: string) => {
@@ -693,7 +679,6 @@ const toggleColorPicker = (buttonId: string) => {
     let spectrum = createColorSpectrum(4, 10, (color: string) => { setColorIcon(buttonId, color); });
     colorPickerMenu.appendChild(spectrum);
     document.body.appendChild(colorPickerMenu);
-
   }
   else {
     colorPickerMenu.style.display = colorPickerMenu.style.display === 'none' ? 'flex' : 'none';
