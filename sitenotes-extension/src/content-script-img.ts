@@ -402,7 +402,7 @@ const saveImage = async (url: string, imageData: {
   // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
   const openImageDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open('siteNotesDB', 2);
+        const request = indexedDB.open('siteNotesDB');
 
         request.onupgradeneeded = (event: any) => {
             const db = event.target.result;

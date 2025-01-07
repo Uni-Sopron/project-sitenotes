@@ -35,7 +35,7 @@ const setHighlighterColor = (color: string) => {
   }
 };
 
-const highlightSelection = () => {
+const highlightSelection = async () => {
   if (!isHighlighterModeActive) return;
   const selection = window.getSelection();
   console.log("ez a kiemelés.", selection);
@@ -51,6 +51,7 @@ const highlightSelection = () => {
     highlight.addEventListener('mouseleave', onHighlightMouseLeave);
     try {
       range.surroundContents(highlight);
+      await saveHighlightToDB(range, activeColor);
     } catch (e) {
       console.error('Nem lehetett körbevenni a tartalmat:', e);
     }
@@ -91,11 +92,179 @@ const removeHighlight = (event: MouseEvent): void => {
       }
 
       parent.removeChild(target);
+      removeHighlightFromDB(event);
     }
   } else {
     console.log("nincs bekapcsolva a törlés");
   }
 };
+
+  // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
+  const openHighlighterDatabase = async (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('siteNotesDB');
+
+        request.onupgradeneeded = (event: any) => {
+            const db = event.target.result;
+
+            // Ellenőrizzük, hogy az `highlighter` tábla létezik-e, ha nem, hozzuk létre
+            if (!db.objectStoreNames.contains('highlighter')) {
+                db.createObjectStore('highlighter', { keyPath: 'id' });
+                console.log(`Object store "${'highlighter'}" created.`);
+            }
+        };
+
+        request.onsuccess = () => {
+            const db = request.result;
+
+            // Ha új oldalra nyitjuk az adatbázist, ellenőrizzük újra az `highlighter` táblát
+            if (!db.objectStoreNames.contains('highlighter')) {
+                const version = db.version + 1; // Verzió emelése szükséges új tábla létrehozásához
+                db.close();
+
+                const upgradeRequest = indexedDB.open('siteNotesDB', version);
+                upgradeRequest.onupgradeneeded = (upgradeEvent: any) => {
+                    const upgradeDb = upgradeEvent.target.result;
+
+                    if (!upgradeDb.objectStoreNames.contains('highlighter')) {
+                        upgradeDb.createObjectStore('highlighter', { keyPath: 'id' });
+                        console.log(`Object store "${'highlighter'}" created during upgrade.`);
+                    }
+                };
+
+                upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
+                upgradeRequest.onerror = (event: any) => reject(event.target.error);
+            } else {
+                resolve(db); // Az adatbázis már tartalmazza a `'highlighter'` táblát
+            }
+        };
+
+        request.onerror = (event: any) => {
+            reject(event.target.error);
+        };
+    });
+};
+
+// Save or update Highlighter data in a store
+const saveHighlighterData = async (storeName: string, data: any): Promise<void> => {
+  const db = await openHighlighterDatabase();
+  const transaction = db.transaction(storeName, 'readwrite');
+  const store = transaction.objectStore(storeName);
+
+  // Add or update the data based on the ID
+  store.put(data);
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+};
+
+const getHighlighterData = async (key: string): Promise<any> => {
+  const db = await openHighlighterDatabase();
+  const transaction = db.transaction('highlighter', 'readonly');
+  const store = transaction.objectStore('highlighter');
+
+  const request = store.get(key);
+
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+};
+
+// XPath generálása egy elemhez
+const generateXPath = (element: Node): string => {
+  if (element.nodeType === Node.TEXT_NODE) {
+    element = element.parentNode!;
+  }
+  const parts: string[] = [];
+  while (element && element.nodeType === Node.ELEMENT_NODE) {
+    let index = 1;
+    let sibling = element.previousSibling;
+    while (sibling) {
+      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName === element.nodeName) {
+        index++;
+      }
+      sibling = sibling.previousSibling;
+    }
+    const tagName = element.nodeName.toLowerCase();
+    const part = index > 1 ? `${tagName}[${index}]` : tagName;
+    parts.unshift(part);
+    element = element.parentNode!;
+  }
+  return parts.length ? `/${parts.join('/')}` : '';
+};
+
+const saveHighlightToDB = async (range: Range, color: string) => {
+  const selectedText = range.toString();
+  const url = window.location.href;
+  const xpath = generateXPath(range.startContainer);
+  const highlightData = {
+    id: `${url}-${selectedText}-${xpath}`, // Egyedi azonosító
+    url,
+    text: selectedText,
+    color,
+    xpath,
+  };
+
+  // Ellenőrizzük, hogy már létezik-e
+  const existing = await getHighlighterData(highlightData.id);
+  if (!existing) {
+    await saveHighlighterData('highlighter', highlightData);
+  }
+};
+
+const removeHighlightFromDB = async (event: MouseEvent) => {
+  const target = event.currentTarget as HTMLElement;
+  const xpath = generateXPath(target.firstChild!);
+  const url = window.location.href;
+  const text = target.textContent;
+
+  const id = `${url}-${text}-${xpath}`;
+  const db = await openHighlighterDatabase();
+  const transaction = db.transaction('highlighter', 'readwrite');
+  const store = transaction.objectStore('highlighter');
+
+  store.delete(id);
+
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve(undefined);
+    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+};
+
+const restoreHighlights = async () => {
+  const url = window.location.href;
+  const db = await openHighlighterDatabase();
+  const transaction = db.transaction('highlighter', 'readonly');
+  const store = transaction.objectStore('highlighter');
+
+  const highlights = await new Promise<any[]>((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const data = request.result.filter((item: any) => item.url === url);
+      resolve(data);
+    };
+    request.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+
+  highlights.forEach((highlight) => {
+    const range = document.evaluate(highlight.xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    if (range) {
+      const mark = document.createElement('mark');
+      mark.style.backgroundColor = highlight.color;
+      mark.textContent = highlight.text;
+      mark.addEventListener('click', removeHighlight);
+      range.parentNode?.replaceChild(mark, range);
+    }
+  });
+};
+
+window.addEventListener('load', async () => {
+  console.log('Page fully loaded. Restoring marked texts...');
+  await restoreHighlights();
+  console.log('Marked texts have been successfully loaded.');
+});
 
 export {
   startHighlighterMode,

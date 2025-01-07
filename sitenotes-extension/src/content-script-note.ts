@@ -1,5 +1,5 @@
-const DB_NAME_NOTE = 'siteNotesDB';
-const DB_VERSION_NOTE = 2;
+// const DB_NAME_NOTE = 'siteNotesDB';
+// const DB_VERSION_NOTE = 2;
 const STORE_NOTES = 'notes';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -55,27 +55,51 @@ const getNoteData = async (key: string): Promise<any> => {
     });
   };
 
-const openNoteDatabase = async (): Promise<IDBDatabase> => {
+  const openNoteDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME_NOTE, DB_VERSION_NOTE);
-  
-      request.onupgradeneeded = (event: any) => {
-        const db = event.target.result;
-  
-        if (!db.objectStoreNames.contains(STORE_NOTES)) {
-          db.createObjectStore(STORE_NOTES, { keyPath: 'id' });
-        }
-      };
-  
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-  
-      request.onerror = (event: any) => {
-        reject(event.target.error);
-      };
+        const request = indexedDB.open('siteNotesDB');
+
+        request.onupgradeneeded = (event: any) => {
+            const db = event.target.result;
+
+            // Ellenőrizzük, hogy az `notes` tábla létezik-e, ha nem, hozzuk létre
+            if (!db.objectStoreNames.contains('notes')) {
+                db.createObjectStore('notes', { keyPath: 'id' });
+                console.log(`Object store "${'notes'}" created.`);
+            }
+        };
+
+        request.onsuccess = () => {
+            const db = request.result;
+
+            // Ha új oldalra nyitjuk az adatbázist, ellenőrizzük újra az `notes` táblát
+            if (!db.objectStoreNames.contains('notes')) {
+                const version = db.version + 1; // Verzió emelése szükséges új tábla létrehozásához
+                db.close();
+
+                const upgradeRequest = indexedDB.open('siteNotesDB', version);
+                upgradeRequest.onupgradeneeded = (upgradeEvent: any) => {
+                    const upgradeDb = upgradeEvent.target.result;
+
+                    if (!upgradeDb.objectStoreNames.contains('notes')) {
+                        upgradeDb.createObjectStore('notes', { keyPath: 'id' });
+                        console.log(`Object store "${'notes'}" created during upgrade.`);
+                    }
+                };
+
+                upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
+                upgradeRequest.onerror = (event: any) => reject(event.target.error);
+            } else {
+                resolve(db); // Az adatbázis már tartalmazza a `'notes'` táblát
+            }
+        };
+
+        request.onerror = (event: any) => {
+            reject(event.target.error);
+        };
     });
-  };
+};
+
 
 const loadNotes = async () => {
     const url = window.location.href;

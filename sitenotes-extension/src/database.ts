@@ -10,8 +10,6 @@ const STORE_PAGES = 'pages';
 
 const STORE_DRAWINGS = 'drawings';
 
-const STORE_MARKERS = 'markers';
-
 //================================================================================================================================================================//
 // Utility function to open the IndexedDB
 export const openPageDatabase = async (): Promise<IDBDatabase> => {
@@ -57,44 +55,7 @@ export const openDrawingDatabase = async (): Promise<IDBDatabase> => {
     };
   });
 };
-
-export const openMarkerDatabase = async (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = (event: any) => {
-      const db = event.target.result;
-
-      if (!db.objectStoreNames.contains(STORE_MARKERS)) {
-        db.createObjectStore(STORE_MARKERS, { keyPath: 'id' });
-      }
-    };
-
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-
-    request.onerror = (event: any) => {
-      reject(event.target.error);
-    };
-  });
-};
 //================================================================================================================================================================//
-
-
-// Save or update marker data in a store
-export const saveMarkerData = async (storeName: string, data: any): Promise<void> => {
-  const db = await openMarkerDatabase();
-  const transaction = db.transaction(storeName, 'readwrite');
-  const store = transaction.objectStore(storeName);
-
-  // Add or update the data based on the ID
-  store.put(data);
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
-  });
-};
 
 // Save or update drawing data in a store
 export const saveDrawingData = async (storeName: string, data: any): Promise<void> => {
@@ -154,23 +115,10 @@ export const getDrawingData = async (key: string): Promise<any> => {
   });
 };
 
-export const getMarkerData = async (key: string): Promise<any> => {
-  const db = await openMarkerDatabase();
-  const transaction = db.transaction(STORE_MARKERS, 'readonly');
-  const store = transaction.objectStore(STORE_MARKERS);
-
-  const request = store.get(key);
-
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (event) => reject((event.target as IDBRequest).error);
-  });
-};
-
 // Save a marked text range
-// export const saveMarker = async (url: string, markerData: { id: number; text: string; position: { start: number; end: number } }): Promise<void> => {
-//   const marker = {
-//     ...markerData,
+// export const saveHighlighter = async (url: string, HighlighterData: { id: number; text: string; position: { start: number; end: number } }): Promise<void> => {
+//   const Highlighter = {
+//     ...HighlighterData,
 //     timestamp: {
 //       created: new Date().toISOString(),
 //       modified: new Date().toISOString(),
@@ -178,7 +126,7 @@ export const getMarkerData = async (key: string): Promise<any> => {
 //     url: url
 //   };
 
-//   await saveData(STORE_MARKERS, marker);
+//   await saveData(STORE_HIGHLIGHTERS, Highlighter);
 // };
 
 // Get all notes for a URL
