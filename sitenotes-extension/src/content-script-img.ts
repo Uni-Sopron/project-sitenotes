@@ -199,14 +199,16 @@ const handleImageUpload = () => {
                     // Create a wrapper div for the image to enable resizing
                     const wrapper = document.createElement('div');
                     wrapper.style.position = 'absolute';
-                    wrapper.style.top = '200px';
-                    wrapper.style.left = '200px';
+                    const scrollX = window.scrollX || 0;
+                    const scrollY = window.scrollY || 0;
+                    wrapper.style.top = `${scrollY + 200}px`;
+                    wrapper.style.left = `${scrollX + 200}px`;
                     wrapper.style.width = `${width}px`;
                     wrapper.style.height = `${height}px`;
-                    wrapper.style.border = '1px dashed gray'; // Optional: a border for visibility
+                    
                     wrapper.style.boxSizing = 'border-box'; // Prevents border from affecting size
                     wrapper.style.overflow = 'visible'; // Allow overflow for resizing handles
-                    wrapper.style.zIndex = '9991'; // Ensure the image is on top of most elements
+                    wrapper.style.zIndex = '9991'; // Ensure the image is on top of most elements - was 8000?
 
                     const resizedImg = document.createElement('img');
                     resizedImg.src = img.src;
@@ -225,6 +227,10 @@ const handleImageUpload = () => {
                     resizeHandle.style.right = '0';
                     resizeHandle.style.cursor = 'nwse-resize'; // Resize cursor
                     resizeHandle.style.display = 'none'; // Initially hidden
+                    resizeHandle.style.zIndex = '8050';
+
+
+
                     wrapper.appendChild(resizeHandle);
 
                     // Create menu for image actions (delete, resize, etc.)
@@ -234,9 +240,23 @@ const handleImageUpload = () => {
                     menu.style.border = '1px solid gray';
                     menu.style.padding = '5px';
                     menu.style.display = 'none'; // Initially hidden
+                    menu.style.zIndex = '9999';
+                    menu.style.borderRadius = '10px';
+
 
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Törlés';
+                    deleteButton.style.marginLeft = '0px';
+                    deleteButton.style.marginTop = '0px';
+                    deleteButton.style.padding = '8px 12px';
+                    deleteButton.style.borderRadius = '5px';
+                    deleteButton.style.backgroundColor = '#f8f9fa';
+                    deleteButton.style.color = 'black';
+                    deleteButton.style.fontFamily = 'Nunito'; // Betűtípus
+                    deleteButton.style.fontSize = '16px'; // Betűméret
+                    deleteButton.style.border = '1px solid #ddd'; // Határvonal
+                    deleteButton.onclick = () => {
+
                     // Törlés gombhoz adatbázis művelet
                     deleteButton.onclick = async () => {
                         document.body.removeChild(wrapper);
@@ -244,7 +264,17 @@ const handleImageUpload = () => {
                         await deleteImageFromDB(imageData.id);
                     };
                     const resizeButton = document.createElement('button');
-                    resizeButton.textContent = 'Méretezés Arányosan';
+                    resizeButton.textContent = 'Méretezés';
+                    resizeButton.style.marginLeft = '0px';
+                    resizeButton.style.marginTop = '0px';
+                    resizeButton.style.padding = '8px 12px';
+                    resizeButton.style.borderRadius = '5px';
+                    resizeButton.style.backgroundColor = '#f8f9fa';
+                    resizeButton.style.color = 'black';
+                    resizeButton.style.fontFamily = 'Nunito'; // Betűtípus
+                    resizeButton.style.fontSize = '16px'; // Betűméret
+                    resizeButton.style.border = '1px solid #ddd'; // Határvonal
+
                     let isAspectRatioLocked = false; // Track if aspect ratio is locked
 
                     resizeButton.onclick = () => {
@@ -255,6 +285,16 @@ const handleImageUpload = () => {
 
                     const rotateButton = document.createElement('button');
                     rotateButton.textContent = 'Forgatás';
+                    rotateButton.style.marginLeft = '0px';
+                    rotateButton.style.marginTop = '0px';
+                    rotateButton.style.padding = '8px 12px';
+                    rotateButton.style.borderRadius = '5px';
+                    rotateButton.style.backgroundColor = '#f8f9fa';
+                    rotateButton.style.color = 'black';
+                    rotateButton.style.fontFamily = 'Nunito'; // Betűtípus
+                    rotateButton.style.fontSize = '16px'; // Betűméret
+                    rotateButton.style.border = '1px solid #ddd'; // Határvonal
+
                     rotateButton.onclick = () => {
                         const currentRotation = parseFloat(resizedImg.style.transform.replace('rotate(', '').replace('deg)', '') || '0');
                         const newRotation = currentRotation + 90;
@@ -264,6 +304,16 @@ const handleImageUpload = () => {
                     
                     const flipButton = document.createElement('button');
                     flipButton.textContent = 'Tükrözés';
+
+                    flipButton.style.marginLeft = '0px';
+                    flipButton.style.marginTop = '0px';
+                    flipButton.style.padding = '8px 12px';
+                    flipButton.style.borderRadius = '5px';
+                    flipButton.style.backgroundColor = '#f8f9fa';
+                    flipButton.style.color = 'black';
+                    flipButton.style.fontFamily = 'Nunito'; // Betűtípus
+                    flipButton.style.fontSize = '16px'; // Betűméret
+                    flipButton.style.border = '1px solid #ddd'; // Határvonal
                     flipButton.onclick = () => {
                         const currentTransform = resizedImg.style.transform || '';
                         resizedImg.style.transform = `${currentTransform} scaleX(-1)`;
@@ -612,4 +662,3 @@ const deleteImageFromDB = async (imageId: number): Promise<void> => {
         transaction.onerror = (event) => reject((event.target as IDBRequest).error);
     });
 };
-

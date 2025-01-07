@@ -1,6 +1,6 @@
 let isHighlighterModeActive = false;
 let isdeleteHighlighter = false;
-
+let activeColor: string = '#6969C0';
 
 const setisdeleteHighlighter = (value: boolean) => {
   isdeleteHighlighter = value;
@@ -28,26 +28,32 @@ const setisHighlighterModeActive = (value: boolean) => {
 const getisHighlighterModeActive = () => {
   return isHighlighterModeActive;
 }
+const setHighlighterColor = (color: string) => {
+  activeColor = color;
+  if (isHighlighterModeActive) {
+    const highlight = document.createElement('mark');
+    highlight.style.backgroundColor = activeColor;
+  }
+};
 
 
-// Function to highlight selected text 
+
 const highlightSelection = () => {
-  if (!isHighlighterModeActive) return; // If highlighter mode is not active, exit
+  if (!isHighlighterModeActive) return;
   const selection = window.getSelection();
   console.log("ez a kiemelés.", selection);
-  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return; // No selection, exit
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
-  // Loop through all the ranges in the selection
+
   for (let i = 0; i < selection.rangeCount; i++) {
     const range = selection.getRangeAt(i);
-    // Ha nincs meglévő kiemelés, alkalmazzunk közvetlen stílust
-    const highlight = document.createElement('mark'); // Vagy használhatsz divet is
-    highlight.style.backgroundColor = 'yellow'; // Állítsuk be a háttérszínt
+
+    const highlight = document.createElement('mark');
+    highlight.style.backgroundColor = activeColor;
     highlight.addEventListener('click', removeHighlight);
     highlight.addEventListener('mouseenter', onHighlightMouseEnter);
     highlight.addEventListener('mouseleave', onHighlightMouseLeave);
     try {
-      // Beágyazzuk a kijelölt tartalom köré a highlight elemet
       range.surroundContents(highlight);
     } catch (e) {
       console.error('Nem lehetett körbevenni a tartalmat:', e);
@@ -57,42 +63,65 @@ const highlightSelection = () => {
 
 
 
-
-
+// // Segédfüggvény a komplementer szín kiszámításához
+// const getComplementaryColor = (color: string): string => {
+//   // Szín beolvasása és RGB komponensekre bontása
+//   const rgbMatch = color.match(/\d+/g);
+//   if (rgbMatch && rgbMatch.length === 3) {
+//     const [r, g, b] = rgbMatch.map(Number); // Piros, zöld, kék komponensek
+//     const compR = 255 - r; // Komplementer piros
+//     const compG = 255 - g; // Komplementer zöld
+//     const compB = 255 - b; // Komplementer kék
+//     return `rgb(${compR}, ${compG}, ${compB})`;
+//   }
+//   // Ha nem sikerült a színt feldolgozni, visszaadjuk alapértelmezetten a fehéret
+//   return 'rgb(255, 255, 255)';
+// };
 
 const onHighlightMouseEnter = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
     const target = event.currentTarget as HTMLElement;
-    target.style.backgroundColor = 'red'; // Change color to red on hover in delete mode
+
+    // Eredeti szín eltárolása
+    if (!target.dataset.originalColor) {
+      target.dataset.originalColor = target.style.backgroundColor;
+    }
+
+    // // Komplementer szín kiszámítása
+    // const originalColor = target.style.backgroundColor || 'rgb(255, 255, 0)'; // Default sárga
+    // const complementaryColor = getComplementaryColor(originalColor);
+
+    // Háttérszín beállítása a komplementer színre
+    target.style.backgroundColor = '#D4D4D4'
   }
 };
 
 const onHighlightMouseLeave = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
     const target = event.currentTarget as HTMLElement;
-    target.style.backgroundColor = 'yellow'; // Revert color to yellow when mouse leaves
+
+
+    const originalColor = target.dataset.originalColor || activeColor;
+    target.style.backgroundColor = originalColor;
   }
 };
 
-//todo: tördeli a szöveget ezzel a mentésnél lesz probléma. 
-//      Az eredeti szöveg tartalmaz linket/hivatkozást akkor azok elvesznek 
-//      el kell menteni az eredeti formáját
-// css ha ráviszem az egeret akkor elszineződik a kijelölés
+
 
 const removeHighlight = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
-    const target = event.currentTarget as HTMLElement; // Az aktuális 'mark' elem
+    const target = event.currentTarget as HTMLElement;
     const parent = target.parentNode;
 
     if (parent) {
-      // Ellenőrizzük, hogy a 'mark' elemnek van-e gyermeke
+
       while (target.firstChild) {
-        // Klónozzuk a gyerek elemeket az eredeti formátumuk megőrzéséhez
+
         const child = target.firstChild;
-        parent.insertBefore(child, target); // Behelyezzük a szülőbe a kijelölés előtt
+        parent.insertBefore(child, target);
       }
 
-      // Végül távolítsuk el az üres 'mark' elemet
+
       parent.removeChild(target);
     }
   } else {
@@ -105,6 +134,7 @@ export {
   setisdeleteHighlighter,
   stopHighlighterMode,
   setisHighlighterModeActive,
-  getisHighlighterModeActive
+  getisHighlighterModeActive,
+  setHighlighterColor
 };
 
