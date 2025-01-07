@@ -80,19 +80,20 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
   }
 };
 
-const removeHighlight = (event: MouseEvent): void => {
+const removeHighlight = async (event: MouseEvent): Promise<void> => {
   if (isdeleteHighlighter) {
     const target = event.currentTarget as HTMLElement;
     const parent = target.parentNode;
+    const id = target.dataset.highlightId;
 
-    if (parent) {
+    if (parent && id) {
       while (target.firstChild) {
         const child = target.firstChild;
         parent.insertBefore(child, target);
       }
 
       parent.removeChild(target);
-      removeHighlightFromDB(event);
+      await removeHighlightFromDB(id);
     }
   } else {
     console.log("nincs bekapcsolva a törlés");
@@ -200,7 +201,7 @@ const saveHighlightToDB = async (range: Range, color: string) => {
   const url = window.location.href;
   const xpath = generateXPath(range.startContainer);
   const highlightData = {
-    id: `${url}-${selectedText}-${xpath}`, // Egyedi azonosító
+    id: Date.now(), // Egyedi azonosító
     url,
     text: selectedText,
     color,
@@ -208,19 +209,13 @@ const saveHighlightToDB = async (range: Range, color: string) => {
   };
 
   // Ellenőrizzük, hogy már létezik-e
-  const existing = await getHighlighterData(highlightData.id);
+  const existing = await getHighlighterData(highlightData.id.toString());
   if (!existing) {
     await saveHighlighterData('highlighter', highlightData);
   }
 };
 
-const removeHighlightFromDB = async (event: MouseEvent) => {
-  const target = event.currentTarget as HTMLElement;
-  const xpath = generateXPath(target.firstChild!);
-  const url = window.location.href;
-  const text = target.textContent;
-
-  const id = `${url}-${text}-${xpath}`;
+const removeHighlightFromDB = async (id: string) => {
   const db = await openHighlighterDatabase();
   const transaction = db.transaction('highlighter', 'readwrite');
   const store = transaction.objectStore('highlighter');
@@ -254,10 +249,11 @@ const restoreHighlights = async () => {
       const mark = document.createElement('mark');
       mark.style.backgroundColor = highlight.color;
       mark.textContent = highlight.text;
+      mark.dataset.highlightId = highlight.id; // Hozzáadjuk az egyedi ID-t
       mark.addEventListener('click', removeHighlight);
       range.parentNode?.replaceChild(mark, range);
     }
-  });
+  });  
 };
 
 window.addEventListener('load', async () => {
