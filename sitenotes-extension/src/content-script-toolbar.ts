@@ -1,7 +1,8 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor, getPencilSize, getEraserSize } from './content-script-draw';
-import { handleImageUpload } from './content-script-img';
+//import { handleImageUpload } from './content-script-img'; - done by chrome api message sender
 import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive, setHighlighterColor } from './content-script-highlighter';
 import { createColorSpectrum } from './content-script-colorpicker';
+
 let toolbar: HTMLDivElement | null = null;
 let eraserMenu: HTMLDivElement | null = null;
 let pencilMenu: HTMLDivElement | null = null;
@@ -260,7 +261,7 @@ const createToolbar = () => {
       ? [
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Circle
         { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
+        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: () => chrome.runtime.sendMessage({ action: 'handleImageUpload' })},
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => startProcess('color-button-1'), className: 'color-button-1' },
@@ -269,7 +270,7 @@ const createToolbar = () => {
         { icon: chrome.runtime.getURL('toolbar-icons/eraser.svg'), alt: 'Eraser', onClick: () => startProcess('eraser-button'), className: 'eraser-button' },
       ]
       : [
-        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: handleImageUpload },
+        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: () => chrome.runtime.sendMessage({ action: 'handleImageUpload' }) },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => startProcess('color-button-1'), className: 'color-button-1' },
