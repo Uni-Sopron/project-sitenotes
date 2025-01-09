@@ -37,25 +37,24 @@ const setHighlighterColor = (color: string) => {
 
 const highlightSelection = async () => {
   if (!isHighlighterModeActive) return;
+
   const selection = window.getSelection();
-  console.log("ez a kiemelés.", selection);
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
-  for (let i = 0; i < selection.rangeCount; i++) {
-    const range = selection.getRangeAt(i);
+  const range = selection.getRangeAt(0);
+  const text = range.toString();
 
-    const highlight = document.createElement('mark');
-    highlight.style.backgroundColor = activeColor;
-    highlight.addEventListener('click', removeHighlight);
-    highlight.addEventListener('mouseenter', onHighlightMouseEnter);
-    highlight.addEventListener('mouseleave', onHighlightMouseLeave);
-    try {
-      range.surroundContents(highlight);
-      await saveHighlightToDB(range, activeColor);
-    } catch (e) {
-      console.error('Nem lehetett körbevenni a tartalmat:', e);
-    }
-  }
+  if (!text.trim()) return; // Üres szöveg
+
+  const color = activeColor;
+
+  // Kiemelés létrehozása
+  const mark = createHighlightElement(text, color);
+  range.deleteContents();
+  range.insertNode(mark);
+
+  // Mentés az adatbázisba
+  await savePageContentToDB(); // Teljes tartalom mentése szűrten
 };
 
 const onHighlightMouseEnter = (event: MouseEvent): void => {
@@ -81,25 +80,28 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
 };
 
 const removeHighlight = async (event: MouseEvent): Promise<void> => {
-  if (isdeleteHighlighter) {
-    const target = event.currentTarget as HTMLElement;
-    const parent = target.parentNode;
-    const id = target.dataset.highlightId;
+  const target = event.currentTarget as HTMLElement;
+  const parent = target.parentNode;
+  const id = target.dataset.highlightId;
 
-    if (parent && id) {
-      while (target.firstChild) {
-        const child = target.firstChild;
-        parent.insertBefore(child, target);
-      }
+  if (parent && id) {
+    // Szöveg visszaállítása az eredeti állapotába
+    const text = target.textContent || '';
+    const textNode = document.createTextNode(text);
 
-      parent.removeChild(target);
+    parent.replaceChild(textNode, target);
+
+    // Törlés az adatbázisból
+    try {
       await removeHighlightFromDB(id);
+      console.log(`Highlight with ID ${id} deleted.`);
+    } catch (error) {
+      console.error(`Failed to delete highlight from DB: ${error}`);
     }
   } else {
-    console.log("nincs bekapcsolva a törlés");
+    console.error("Failed to delete highlight. Parent or ID not found.");
   }
 };
-
   // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
   const openHighlighterDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
@@ -146,73 +148,57 @@ const removeHighlight = async (event: MouseEvent): Promise<void> => {
     });
 };
 
-// Save or update Highlighter data in a store
-const saveHighlighterData = async (storeName: string, data: any): Promise<void> => {
-  const db = await openHighlighterDatabase();
-  const transaction = db.transaction(storeName, 'readwrite');
-  const store = transaction.objectStore(storeName);
+const savePageContentToDB = async () => {
+  // Hozzunk létre egy másolatot a `document.body` tartalmáról
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = document.body.innerHTML;
 
-  // Add or update the data based on the ID
-  store.put(data);
+  // Az eltávolítandó elemek kiválasztása és eltávolítása
+  const highlighterMenu = tempDiv.querySelector('#highlighterMenu');
+  if (highlighterMenu) {
+    highlighterMenu.remove();
+  }
+
+  // Más szükségtelen elemek eltávolítása (ha vannak ilyenek)
+  const unwantedSelectors = ['#toolbar-shadow-host', '[id^="shadowHost"]'];
+  unwantedSelectors.forEach((selector) => {
+    const elements = tempDiv.querySelectorAll(selector);
+    elements.forEach((el) => {
+      el.remove();
+    });
+  });
+
+  // Tisztított HTML szöveg
+  const cleanedHTML = tempDiv.innerHTML;
+
+  // Mentés IndexedDB-be
+  const db = await openHighlighterDatabase();
+  const transaction = db.transaction('highlighter', 'readwrite');
+  const store = transaction.objectStore('highlighter');
+
+  const pageData = {
+    id: 'pageContent', // Egyedi azonosító az oldal tartalmához
+    url: window.location.href,
+    content: cleanedHTML, // Csak a megtisztított tartalom kerül mentésre
+  };
+
+  store.put(pageData);
+
   return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
+    transaction.oncomplete = () => resolve(undefined);
     transaction.onerror = (event) => reject((event.target as IDBRequest).error);
   });
 };
 
-const getHighlighterData = async (key: string): Promise<any> => {
-  const db = await openHighlighterDatabase();
-  const transaction = db.transaction('highlighter', 'readonly');
-  const store = transaction.objectStore('highlighter');
-
-  const request = store.get(key);
-
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (event) => reject((event.target as IDBRequest).error);
-  });
-};
-
-// XPath generálása egy elemhez
-const generateXPath = (element: Node): string => {
-  if (element.nodeType === Node.TEXT_NODE) {
-    element = element.parentNode!;
-  }
-  const parts: string[] = [];
-  while (element && element.nodeType === Node.ELEMENT_NODE) {
-    let index = 1;
-    let sibling = element.previousSibling;
-    while (sibling) {
-      if (sibling.nodeType === Node.ELEMENT_NODE && sibling.nodeName === element.nodeName) {
-        index++;
-      }
-      sibling = sibling.previousSibling;
-    }
-    const tagName = element.nodeName.toLowerCase();
-    const part = index > 1 ? `${tagName}[${index}]` : tagName;
-    parts.unshift(part);
-    element = element.parentNode!;
-  }
-  return parts.length ? `/${parts.join('/')}` : '';
-};
-
-const saveHighlightToDB = async (range: Range, color: string) => {
-  const selectedText = range.toString();
-  const url = window.location.href;
-  const xpath = generateXPath(range.startContainer);
-  const highlightData = {
-    id: Date.now(), // Egyedi azonosító
-    url,
-    text: selectedText,
-    color,
-    xpath,
-  };
-
-  // Ellenőrizzük, hogy már létezik-e
-  const existing = await getHighlighterData(highlightData.id.toString());
-  if (!existing) {
-    await saveHighlighterData('highlighter', highlightData);
-  }
+// Kiemelés létrehozása
+const createHighlightElement = (text: string, color: string): HTMLElement => {
+  const mark = document.createElement('mark');
+  mark.textContent = text;
+  mark.style.backgroundColor = color;
+  mark.addEventListener('click', removeHighlight);
+  mark.addEventListener('mouseenter', onHighlightMouseEnter);
+  mark.addEventListener('mouseleave', onHighlightMouseLeave);
+  return mark;
 };
 
 const removeHighlightFromDB = async (id: string) => {
@@ -228,37 +214,33 @@ const removeHighlightFromDB = async (id: string) => {
   });
 };
 
-const restoreHighlights = async () => {
-  const url = window.location.href;
+const restorePageContent = async () => {
   const db = await openHighlighterDatabase();
   const transaction = db.transaction('highlighter', 'readonly');
   const store = transaction.objectStore('highlighter');
 
-  const highlights = await new Promise<any[]>((resolve, reject) => {
-    const request = store.getAll();
-    request.onsuccess = () => {
-      const data = request.result.filter((item: any) => item.url === url);
-      resolve(data);
-    };
+  const pageData = await new Promise<any>((resolve, reject) => {
+    const request = store.get('pageContent');
+    request.onsuccess = () => resolve(request.result);
     request.onerror = (event) => reject((event.target as IDBRequest).error);
   });
 
-  highlights.forEach((highlight) => {
-    const range = document.evaluate(highlight.xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    if (range) {
-      const mark = document.createElement('mark');
-      mark.style.backgroundColor = highlight.color;
-      mark.textContent = highlight.text;
-      mark.dataset.highlightId = highlight.id; // Hozzáadjuk az egyedi ID-t
-      mark.addEventListener('click', removeHighlight);
-      range.parentNode?.replaceChild(mark, range);
+  if (pageData && pageData.url === window.location.href) {
+    document.body.innerHTML = pageData.content;
+
+    // Ellenőrizzük, hogy ne maradjon `highlighterMenu` az ID-val rendelkező elem
+    const highlighterMenu = document.querySelector('#highlighterMenu');
+    if (highlighterMenu) {
+      highlighterMenu.remove();
     }
-  });  
+
+    console.log('Page content restored and cleaned.');
+  }
 };
 
 window.addEventListener('load', async () => {
   console.log('Page fully loaded. Restoring marked texts...');
-  await restoreHighlights();
+  await restorePageContent();
   console.log('Marked texts have been successfully loaded.');
 });
 
