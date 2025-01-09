@@ -80,28 +80,29 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
 };
 
 const removeHighlight = async (event: MouseEvent): Promise<void> => {
+  if (!isdeleteHighlighter) return; // Csak akkor működjön, ha a törlés mód aktív
+
   const target = event.currentTarget as HTMLElement;
+  if (target.tagName.toLowerCase() !== 'mark') return; // Csak `mark` elemekre érvényes
+
   const parent = target.parentNode;
-  const id = target.dataset.highlightId;
+  const text = target.textContent || '';
 
-  if (parent && id) {
-    // Szöveg visszaállítása az eredeti állapotába
-    const text = target.textContent || '';
+  if (parent) {
+    // Az eredeti szöveg visszaállítása
     const textNode = document.createTextNode(text);
-
     parent.replaceChild(textNode, target);
 
-    // Törlés az adatbázisból
+    // Az oldal tartalmának mentése
     try {
-      await removeHighlightFromDB(id);
-      console.log(`Highlight with ID ${id} deleted.`);
+      await savePageContentToDB();
+      console.log('Highlight deleted and page content updated.');
     } catch (error) {
-      console.error(`Failed to delete highlight from DB: ${error}`);
+      console.error(`Failed to save page content: ${error}`);
     }
-  } else {
-    console.error("Failed to delete highlight. Parent or ID not found.");
   }
 };
+
   // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
   const openHighlighterDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
@@ -201,19 +202,30 @@ const createHighlightElement = (text: string, color: string): HTMLElement => {
   return mark;
 };
 
-const removeHighlightFromDB = async (id: string) => {
-  const db = await openHighlighterDatabase();
-  const transaction = db.transaction('highlighter', 'readwrite');
-  const store = transaction.objectStore('highlighter');
+// const removeHighlightFromDB = async (id: string) => {
+//   const db = await openHighlighterDatabase();
+//   const transaction = db.transaction('highlighter', 'readwrite');
+//   const store = transaction.objectStore('highlighter');
 
-  store.delete(id);
+//   store.delete(id);
 
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve(undefined);
-    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+//   return new Promise((resolve, reject) => {
+//     transaction.oncomplete = () => resolve(undefined);
+//     transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+//   });
+// };
+
+// Törlés eseménykezelő hozzáadása a `mark` elemekhez
+const addRemoveHighlightEventListeners = () => {
+  const highlights = document.querySelectorAll('mark');
+  highlights.forEach((highlight) => {
+    highlight.addEventListener('click', removeHighlight);
+    highlight.addEventListener('mouseenter', onHighlightMouseEnter);
+    highlight.addEventListener('mouseleave', onHighlightMouseLeave);
   });
 };
 
+// A `restorePageContent` módosítása, hogy törlés eseménykezelőket is hozzáadjon
 const restorePageContent = async () => {
   const db = await openHighlighterDatabase();
   const transaction = db.transaction('highlighter', 'readonly');
@@ -234,14 +246,21 @@ const restorePageContent = async () => {
       highlighterMenu.remove();
     }
 
+    // Eseménykezelők újra hozzáadása a meglévő kiemelésekhez
+    addRemoveHighlightEventListeners();
+
     console.log('Page content restored and cleaned.');
   }
 };
 
+// Új `window` esemény a törlés funkció aktiválásához
 window.addEventListener('load', async () => {
   console.log('Page fully loaded. Restoring marked texts...');
   await restorePageContent();
   console.log('Marked texts have been successfully loaded.');
+
+  // Eseménykezelők a meglévő kiemelésekhez
+  addRemoveHighlightEventListeners();
 });
 
 export {
