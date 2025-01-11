@@ -28,6 +28,9 @@ const setisHighlighterModeActive = (value: boolean) => {
 const getisHighlighterModeActive = () => {
   return isHighlighterModeActive;
 }
+const getisdeleteHighlighter = () => {
+  return isdeleteHighlighter;
+}
 const setHighlighterColor = (color: string) => {
   activeColor = color;
   if (isHighlighterModeActive) {
@@ -135,6 +138,7 @@ export {
   stopHighlighterMode,
   setisHighlighterModeActive,
   getisHighlighterModeActive,
-  setHighlighterColor
+  setHighlighterColor,
+  getisdeleteHighlighter
 };
 

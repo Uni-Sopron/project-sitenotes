@@ -1,6 +1,6 @@
 import { togglePencilMode, toggleEraserMode, setEraserSize, setEraserModeActive, stopEraserMode, stopPencilMode, setPencilModeActive, clearCanvas, setPencilSize, setPencilColor, getCTXColor, getPencilSize, getEraserSize } from './content-script-draw';
 //import { handleImageUpload } from './content-script-img'; - done by chrome api message sender
-import { startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive, setHighlighterColor } from './content-script-highlighter';
+import { getisdeleteHighlighter, startHighlighterMode, setisdeleteHighlighter, stopHighlighterMode, setisHighlighterModeActive, setHighlighterColor, getisHighlighterModeActive } from './content-script-highlighter';
 import { createColorSpectrum } from './content-script-colorpicker';
 
 let toolbar: HTMLDivElement | null = null;
@@ -77,6 +77,8 @@ const stopProcess = () => {
     case 'highlighter-button':
       // Highlighter kikapcsoló
       setisHighlighterModeActive(false);
+      console.log("highlighter kikapcsolva");
+      setisdeleteHighlighter(false);
       stopHighlighterMode();
       highlighterMenu!.style.display = 'none';
       highlighterButton!.style.backgroundColor = '#f8f9fa';
@@ -261,7 +263,7 @@ const createToolbar = () => {
       ? [
         { icon: chrome.runtime.getURL('toolbar-icons/circle.svg'), alt: 'Toggle Layout', onClick: toggleLayout }, // Circle
         { icon: chrome.runtime.getURL('toolbar-icons/move.svg'), alt: 'Move', onClick: () => startProcess('move-button'), className: 'move-button' },
-        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: () => chrome.runtime.sendMessage({ action: 'handleImageUpload' })},
+        { icon: chrome.runtime.getURL('toolbar-icons/upload.svg'), alt: 'Upload', onClick: () => chrome.runtime.sendMessage({ action: 'handleImageUpload' }) },
         { icon: chrome.runtime.getURL('toolbar-icons/pencil_with_line.svg'), alt: 'Pencil', onClick: () => startProcess('pencil-button'), className: 'pencil-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/highlighter.svg'), alt: 'Highlighter', onClick: () => startProcess('highlighter-button'), className: 'highlighter-button' },
         { icon: chrome.runtime.getURL('toolbar-icons/color1.svg'), alt: 'Color 1', onClick: () => startProcess('color-button-1'), className: 'color-button-1' },
@@ -321,6 +323,11 @@ const toggleToolbarVisibility = () => {
   if (toolbar) {
     const isVisible = toolbar.style.display !== 'none';
     toolbar.style.display = isVisible ? 'none' : 'flex';
+    if (activeButton) {
+      setButtonOpacity(activeButton, 1);
+      stopProcess();
+
+    }
   } else {
     createToolbar();
   }
@@ -578,10 +585,13 @@ const toggleHighlighterButton = () => {
     highlighterButton.addEventListener('click', () => {
       // Highlighter mód
       setisdeleteHighlighter(false);
-      setisHighlighterModeActive(true);
-      startHighlighterMode();
-      highlighterButton!.style.backgroundColor = '#E8F3FF';
+      setisHighlighterModeActive(!getisHighlighterModeActive());
       deleteHighlighterButton!.style.backgroundColor = '#f8f9fa';
+      if (getisHighlighterModeActive()) {
+        startHighlighterMode();
+        highlighterButton!.style.backgroundColor = '#E8F3FF';
+      }
+      else { highlighterButton!.style.backgroundColor = '#f8f9fa'; }
     });
 
     deleteHighlighterButton = document.createElement('button');
@@ -597,12 +607,20 @@ const toggleHighlighterButton = () => {
     deleteHighlighterButton.style.border = '1px solid #ddd'; // Határvonal
     deleteHighlighterButton.style.display = 'block'; // Külön sorba kerül a gomb
     deleteHighlighterButton.addEventListener('click', () => {
-      // Highlighter törlés mód
-      setisdeleteHighlighter(true);
-      setisHighlighterModeActive(false)
+
+      setisdeleteHighlighter(!getisdeleteHighlighter());
+      console.log("delete highlighter: " + getisdeleteHighlighter());
+      setisHighlighterModeActive(false);
       highlighterButton!.style.backgroundColor = '#f8f9fa';
-      deleteHighlighterButton!.style.backgroundColor = '#E8F3FF';
+
+      if (getisdeleteHighlighter()) {
+
+        deleteHighlighterButton!.style.backgroundColor = '#E8F3FF'; // Aktív szín
+      } else {
+        deleteHighlighterButton!.style.backgroundColor = '#f8f9fa'; // Inaktív szín
+      }
     });
+
 
     highlighterMenu.appendChild(highlighterButton);
     highlighterMenu.appendChild(deleteHighlighterButton);
