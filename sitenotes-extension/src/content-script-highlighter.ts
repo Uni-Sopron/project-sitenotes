@@ -150,37 +150,37 @@ const removeHighlight = async (event: MouseEvent): Promise<void> => {
 };
 
 const savePageContentToDB = async () => {
-  // Hozzunk létre egy másolatot a `document.body` tartalmáról
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = document.body.innerHTML;
 
-  // Az eltávolítandó elemek kiválasztása és eltávolítása
+  // Távolítsuk el a nem szükséges elemeket
   const highlighterMenu = tempDiv.querySelector('#highlighterMenu');
-  if (highlighterMenu) {
-    highlighterMenu.remove();
-  }
+  if (highlighterMenu) highlighterMenu.remove();
 
-  // Más szükségtelen elemek eltávolítása (ha vannak ilyenek)
   const unwantedSelectors = ['#toolbar-shadow-host', '[id^="shadowHost"]'];
   unwantedSelectors.forEach((selector) => {
     const elements = tempDiv.querySelectorAll(selector);
-    elements.forEach((el) => {
-      el.remove();
-    });
+    elements.forEach((el) => el.remove());
   });
 
-  // Tisztított HTML szöveg
+  // Canvas tartalom exportálása, ha létezik
+  const canvas = document.querySelector('canvas');
+  let canvasImage = '';
+  if (canvas) {
+    canvasImage = canvas.toDataURL(); // Mentés base64 formátumban
+  }
+
   const cleanedHTML = tempDiv.innerHTML;
 
-  // Mentés IndexedDB-be
   const db = await openHighlighterDatabase();
   const transaction = db.transaction('highlighter', 'readwrite');
   const store = transaction.objectStore('highlighter');
 
   const pageData = {
-    id: 'pageContent', // Egyedi azonosító az oldal tartalmához
+    id: 'pageContent',
     url: window.location.href,
-    content: cleanedHTML, // Csak a megtisztított tartalom kerül mentésre
+    content: cleanedHTML,
+    canvasImage, // Canvas tartalom hozzáadása
   };
 
   store.put(pageData);
@@ -240,18 +240,30 @@ const restorePageContent = async () => {
   if (pageData && pageData.url === window.location.href) {
     document.body.innerHTML = pageData.content;
 
-    // Ellenőrizzük, hogy ne maradjon `highlighterMenu` az ID-val rendelkező elem
+    // Ellenőrizzük, hogy ne maradjanak nem szükséges elemek
     const highlighterMenu = document.querySelector('#highlighterMenu');
-    if (highlighterMenu) {
-      highlighterMenu.remove();
+    if (highlighterMenu) highlighterMenu.remove();
+
+    // Canvas visszaállítása
+    if (pageData.canvasImage) {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        const ctx = (canvas as HTMLCanvasElement).getContext('2d');
+        if (ctx) {
+          const img = new Image();
+          img.onload = () => ctx.drawImage(img, 0, 0);
+          img.src = pageData.canvasImage;
+        }
+      }
     }
 
-    // Eseménykezelők újra hozzáadása a meglévő kiemelésekhez
+    // Eseménykezelők újra hozzáadása
     addRemoveHighlightEventListeners();
 
     console.log('Page content restored and cleaned.');
   }
 };
+
 
 // Új `window` esemény a törlés funkció aktiválásához
 window.addEventListener('load', async () => {
