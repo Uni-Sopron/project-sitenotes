@@ -13,6 +13,7 @@ const stopHighlighterMode = () => {
 }
 
 // HIGHLIGHTER FUNCTIONALITY
+//Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik)
 const startHighlighterMode = () => {
   // Mód aktiválása
   document.body.style.cursor = 'text';
@@ -35,27 +36,47 @@ const setHighlighterColor = (color: string) => {
   }
 };
 
-const highlightSelection = async () => {
-  if (!isHighlighterModeActive) return;
 
+
+const highlightSelection = () => {
+  if (!isHighlighterModeActive) return;
   const selection = window.getSelection();
+  console.log("ez a kiemelés.", selection);
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
-  const range = selection.getRangeAt(0);
-  const text = range.toString();
 
-  if (!text.trim()) return; // Üres szöveg
+  for (let i = 0; i < selection.rangeCount; i++) {
+    const range = selection.getRangeAt(i);
 
-  const color = activeColor;
-
-  // Kiemelés létrehozása
-  const mark = createHighlightElement(text, color);
-  range.deleteContents();
-  range.insertNode(mark);
-
-  // Mentés az adatbázisba
-  await savePageContentToDB(); // Teljes tartalom mentése szűrten
+    const highlight = document.createElement('mark');
+    highlight.style.backgroundColor = activeColor;
+    highlight.addEventListener('click', removeHighlight);
+    highlight.addEventListener('mouseenter', onHighlightMouseEnter);
+    highlight.addEventListener('mouseleave', onHighlightMouseLeave);
+    try {
+      range.surroundContents(highlight);
+    } catch (e) {
+      console.error('Nem lehetett körbevenni a tartalmat:', e);
+    }
+  }
 };
+
+
+
+// // Segédfüggvény a komplementer szín kiszámításához
+// const getComplementaryColor = (color: string): string => {
+//   // Szín beolvasása és RGB komponensekre bontása
+//   const rgbMatch = color.match(/\d+/g);
+//   if (rgbMatch && rgbMatch.length === 3) {
+//     const [r, g, b] = rgbMatch.map(Number); // Piros, zöld, kék komponensek
+//     const compR = 255 - r; // Komplementer piros
+//     const compG = 255 - g; // Komplementer zöld
+//     const compB = 255 - b; // Komplementer kék
+//     return `rgb(${compR}, ${compG}, ${compB})`;
+//   }
+//   // Ha nem sikerült a színt feldolgozni, visszaadjuk alapértelmezetten a fehéret
+//   return 'rgb(255, 255, 255)';
+// };
 
 const onHighlightMouseEnter = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
@@ -66,6 +87,10 @@ const onHighlightMouseEnter = (event: MouseEvent): void => {
       target.dataset.originalColor = target.style.backgroundColor;
     }
 
+    // // Komplementer szín kiszámítása
+    // const originalColor = target.style.backgroundColor || 'rgb(255, 255, 0)'; // Default sárga
+    // const complementaryColor = getComplementaryColor(originalColor);
+
     // Háttérszín beállítása a komplementer színre
     target.style.backgroundColor = '#D4D4D4'
   }
@@ -74,206 +99,35 @@ const onHighlightMouseEnter = (event: MouseEvent): void => {
 const onHighlightMouseLeave = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
     const target = event.currentTarget as HTMLElement;
+
+
     const originalColor = target.dataset.originalColor || activeColor;
     target.style.backgroundColor = originalColor;
   }
 };
 
-const removeHighlight = async (event: MouseEvent): Promise<void> => {
-  if (!isdeleteHighlighter) return; // Csak akkor működjön, ha a törlés mód aktív
 
-  const target = event.currentTarget as HTMLElement;
-  if (target.tagName.toLowerCase() !== 'mark') return; // Csak `mark` elemekre érvényes
 
-  const parent = target.parentNode;
-  const text = target.textContent || '';
+const removeHighlight = (event: MouseEvent): void => {
+  if (isdeleteHighlighter) {
+    const target = event.currentTarget as HTMLElement;
+    const parent = target.parentNode;
 
-  if (parent) {
-    // Az eredeti szöveg visszaállítása
-    const textNode = document.createTextNode(text);
-    parent.replaceChild(textNode, target);
+    if (parent) {
 
-    // Az oldal tartalmának mentése
-    try {
-      await savePageContentToDB();
-      console.log('Highlight deleted and page content updated.');
-    } catch (error) {
-      console.error(`Failed to save page content: ${error}`);
-    }
-  }
-};
+      while (target.firstChild) {
 
-  // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
-  const openHighlighterDatabase = async (): Promise<IDBDatabase> => {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('siteNotesDB');
-
-        request.onupgradeneeded = (event: any) => {
-            const db = event.target.result;
-
-            // Ellenőrizzük, hogy az `highlighter` tábla létezik-e, ha nem, hozzuk létre
-            if (!db.objectStoreNames.contains('highlighter')) {
-                db.createObjectStore('highlighter', { keyPath: 'id' });
-                console.log(`Object store "${'highlighter'}" created.`);
-            }
-        };
-
-        request.onsuccess = () => {
-            const db = request.result;
-
-            // Ha új oldalra nyitjuk az adatbázist, ellenőrizzük újra az `highlighter` táblát
-            if (!db.objectStoreNames.contains('highlighter')) {
-                const version = db.version + 1; // Verzió emelése szükséges új tábla létrehozásához
-                db.close();
-
-                const upgradeRequest = indexedDB.open('siteNotesDB', version);
-                upgradeRequest.onupgradeneeded = (upgradeEvent: any) => {
-                    const upgradeDb = upgradeEvent.target.result;
-
-                    if (!upgradeDb.objectStoreNames.contains('highlighter')) {
-                        upgradeDb.createObjectStore('highlighter', { keyPath: 'id' });
-                        console.log(`Object store "${'highlighter'}" created during upgrade.`);
-                    }
-                };
-
-                upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
-                upgradeRequest.onerror = (event: any) => reject(event.target.error);
-            } else {
-                resolve(db); // Az adatbázis már tartalmazza a `'highlighter'` táblát
-            }
-        };
-
-        request.onerror = (event: any) => {
-            reject(event.target.error);
-        };
-    });
-};
-
-const savePageContentToDB = async () => {
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = document.body.innerHTML;
-
-  // Távolítsuk el a nem szükséges elemeket
-  const highlighterMenu = tempDiv.querySelector('#highlighterMenu');
-  if (highlighterMenu) highlighterMenu.remove();
-
-  const unwantedSelectors = ['#toolbar-shadow-host', '[id^="shadowHost"]'];
-  unwantedSelectors.forEach((selector) => {
-    const elements = tempDiv.querySelectorAll(selector);
-    elements.forEach((el) => el.remove());
-  });
-
-  // Canvas tartalom exportálása, ha létezik
-  const canvas = document.querySelector('canvas');
-  let canvasImage = '';
-  if (canvas) {
-    canvasImage = canvas.toDataURL(); // Mentés base64 formátumban
-  }
-
-  const cleanedHTML = tempDiv.innerHTML;
-
-  const db = await openHighlighterDatabase();
-  const transaction = db.transaction('highlighter', 'readwrite');
-  const store = transaction.objectStore('highlighter');
-
-  const pageData = {
-    id: 'pageContent',
-    url: window.location.href,
-    content: cleanedHTML,
-    canvasImage, // Canvas tartalom hozzáadása
-  };
-
-  store.put(pageData);
-
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve(undefined);
-    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
-  });
-};
-
-// Kiemelés létrehozása
-const createHighlightElement = (text: string, color: string): HTMLElement => {
-  const mark = document.createElement('mark');
-  mark.textContent = text;
-  mark.style.backgroundColor = color;
-  mark.addEventListener('click', removeHighlight);
-  mark.addEventListener('mouseenter', onHighlightMouseEnter);
-  mark.addEventListener('mouseleave', onHighlightMouseLeave);
-  return mark;
-};
-
-// const removeHighlightFromDB = async (id: string) => {
-//   const db = await openHighlighterDatabase();
-//   const transaction = db.transaction('highlighter', 'readwrite');
-//   const store = transaction.objectStore('highlighter');
-
-//   store.delete(id);
-
-//   return new Promise((resolve, reject) => {
-//     transaction.oncomplete = () => resolve(undefined);
-//     transaction.onerror = (event) => reject((event.target as IDBRequest).error);
-//   });
-// };
-
-// Törlés eseménykezelő hozzáadása a `mark` elemekhez
-const addRemoveHighlightEventListeners = () => {
-  const highlights = document.querySelectorAll('mark');
-  highlights.forEach((highlight) => {
-    highlight.addEventListener('click', removeHighlight);
-    highlight.addEventListener('mouseenter', onHighlightMouseEnter);
-    highlight.addEventListener('mouseleave', onHighlightMouseLeave);
-  });
-};
-
-// A `restorePageContent` módosítása, hogy törlés eseménykezelőket is hozzáadjon
-const restorePageContent = async () => {
-  const db = await openHighlighterDatabase();
-  const transaction = db.transaction('highlighter', 'readonly');
-  const store = transaction.objectStore('highlighter');
-
-  const pageData = await new Promise<any>((resolve, reject) => {
-    const request = store.get('pageContent');
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (event) => reject((event.target as IDBRequest).error);
-  });
-
-  if (pageData && pageData.url === window.location.href) {
-    document.body.innerHTML = pageData.content;
-
-    // Ellenőrizzük, hogy ne maradjanak nem szükséges elemek
-    const highlighterMenu = document.querySelector('#highlighterMenu');
-    if (highlighterMenu) highlighterMenu.remove();
-
-    // Canvas visszaállítása
-    if (pageData.canvasImage) {
-      const canvas = document.querySelector('canvas');
-      if (canvas) {
-        const ctx = (canvas as HTMLCanvasElement).getContext('2d');
-        if (ctx) {
-          const img = new Image();
-          img.onload = () => ctx.drawImage(img, 0, 0);
-          img.src = pageData.canvasImage;
-        }
+        const child = target.firstChild;
+        parent.insertBefore(child, target);
       }
+
+
+      parent.removeChild(target);
     }
-
-    // Eseménykezelők újra hozzáadása
-    addRemoveHighlightEventListeners();
-
-    console.log('Page content restored and cleaned.');
+  } else {
+    console.log("nincs bekapcsolva a törlés");
   }
 };
-
-
-// Új `window` esemény a törlés funkció aktiválásához
-window.addEventListener('load', async () => {
-  console.log('Page fully loaded. Restoring marked texts...');
-  await restorePageContent();
-  console.log('Marked texts have been successfully loaded.');
-
-  // Eseménykezelők a meglévő kiemelésekhez
-  addRemoveHighlightEventListeners();
-});
 
 export {
   startHighlighterMode,
