@@ -156,12 +156,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // Keep the message channel open
 });
 
-window.addEventListener('DOMContentLoaded', async () => {
-    console.log('Page loaded. Starting image load...');
-    await loadAllImages();
-});
-
-
 const handleImageUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';

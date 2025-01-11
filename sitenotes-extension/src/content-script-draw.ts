@@ -1,4 +1,3 @@
-// ide kerül a rajzoló kódja, ami rajzol a weboldalra.
 let isPencilModeActive = false; // Ceruza mód állapota
 let isDrawing = false;
 let isEraserModeActive = false; // Radír mód állapota
@@ -12,21 +11,25 @@ let activeEraseSize: number = 25;
 let activeColor: string = '#6969C0';
 let activeSize: number = 25;
 
-
-const setupCanvas = () => {
+const setupCanvas = async (): Promise<void> => {
+  if (!canvas) {
     canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    // A canvas magassága a hosszabb értékre lesz beállítva (oldal hossza vagy képernyőmagasság)
-    canvas.height = Math.max(window.innerHeight, document.body.scrollHeight);
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.zIndex = '9000';
-    canvas.style.backgroundColor = 'transparent'; // Átlátszó hátterű vászon
-    canvas.style.pointerEvents = 'auto';
-    document.body.appendChild(canvas);
-    ctx = canvas.getContext('2d');
-}
+  }  
+  canvas.width = window.innerWidth;
+  canvas.height = Math.max(window.innerHeight, document.body.scrollHeight);
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.zIndex = '9000';
+  canvas.style.backgroundColor = 'transparent';
+  canvas.style.pointerEvents = 'none'; // Az alapértelmezett beállítás
+  document.body.appendChild(canvas);
+  ctx = canvas.getContext('2d');
+
+  // Töltse be a korábbi rajzot, ha van mentve
+  await loadCanvasDrawing();
+};
+
 
 const clearCanvas = () => {
   ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
@@ -165,11 +168,11 @@ const toggleEraserMode = () => {
 
 
 const setEraserModeActive = (value: boolean) => {
-isEraserModeActive = value;
+  isEraserModeActive = value;
 }
 
 const getEraserModeActive = () => {
-return isEraserModeActive;
+  return isEraserModeActive;
 }
 
 const stopPencilMode = () => {
@@ -179,118 +182,227 @@ const stopPencilMode = () => {
   canvas!.style.pointerEvents = 'none'; // A vászonon lévő események letiltása
 }
   
-  
-  // PENCIL FUNCTIONALITY
-  const togglePencilMode = () => {
-    if (isPencilModeActive) {
-      // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
-      stopPencilMode();
-    } else {
-      // Ha a ceruza mód inaktív, akkor aktiváljuk
-      activatePencilMode();
-      removeEraserEventlisteners();
-      canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
-      setPencilModeActive(true);
-      setEraserModeActive(false);
-      canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
-    }
-  };
-
-  const setPencilSize = (size: number) => {
-    activeSize = size;
-    if (ctx) {
-      ctx.lineWidth = size;
-    }
+// PENCIL FUNCTIONALITY
+const togglePencilMode = () => {
+  if (isPencilModeActive) {
+    // Ha a ceruza mód aktív, akkor visszaállítjuk az egérkurzort és deaktiváljuk a rajzolást
+    stopPencilMode();
+  } else {
+    // Ha a ceruza mód inaktív, akkor aktiváljuk
+    activatePencilMode();
+    removeEraserEventlisteners();
+    canvas!.style.cursor = 'crosshair'; // Ceruza kurzor
+    setPencilModeActive(true);
+    setEraserModeActive(false);
+    canvas!.style.pointerEvents = 'auto'; // A vászonon lévő események engedélyezése
   }
+};
 
-  const setPencilColor = (color: string) => {
-    activeColor = color;
-    if (ctx) {
-      ctx.strokeStyle = activeColor;
-    }
+const setPencilSize = (size: number) => {
+  activeSize = size;
+  if (ctx) {
+    ctx.lineWidth = size;
   }
-  
-  const activatePencilMode = () => {
-    if (!canvas) {
-      setupCanvas();
-    }
-    if (ctx) {
-      // Beállítjuk a rajzolás alapértelmezett tulajdonságait
-      ctx.strokeStyle = activeColor; //#1974D2
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.lineWidth = activeSize;
-    }
-    addPencilEventListeners();
-  };
-  
-  const draw = (e: MouseEvent | TouchEvent) => {
-    e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
-    if (!isDrawing || !ctx) return; // Ha nem rajzolunk, lépjünk ki
-  
-        let offsetX = 0;
-        let offsetY = 0;
-  
-        // Egér esemény esetén
-        if (e instanceof MouseEvent) {
-            offsetX = e.offsetX;
-            offsetY = e.offsetY;
-        }
-          // Érintés esemény esetén
-        else if (e instanceof TouchEvent) {
-        const touch = e.touches[0] || e.changedTouches[0];
-        offsetX = touch.clientX - canvas!.offsetLeft;
-        offsetY = touch.clientY - canvas!.offsetTop;
-    }
-        ctx.beginPath();             // Kezdünk egy új útvonalat
-        if (lastX !== null && lastY !== null) {
-            ctx.moveTo(lastX, lastY);     // Rajzolás a korábbi pozícióból
-        }
-        ctx.lineTo(offsetX, offsetY); // Rajzolás az új pozícióig
-        ctx.stroke();                 // Vonal megjelenítése
-        [lastX, lastY] = [offsetX, offsetY]; // Frissítjük az utolsó pozíciót
-  };
-  
-  const startDrawing = (e: MouseEvent | TouchEvent) => {
-    isDrawing = true;
-  
-    if (e instanceof MouseEvent) {
+}
+
+const setPencilColor = (color: string) => {
+  activeColor = color;
+  if (ctx) {
+    ctx.strokeStyle = activeColor;
+  }
+}
+
+const activatePencilMode = () => {
+  if (!canvas) {
+    setupCanvas();
+  }
+  if (ctx) {
+    // Beállítjuk a rajzolás alapértelmezett tulajdonságait
+    ctx.strokeStyle = activeColor; //#1974D2
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = activeSize;
+  }
+  addPencilEventListeners();
+};
+
+const draw = (e: MouseEvent | TouchEvent) => {
+  e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
+  if (!isDrawing || !ctx) return; // Ha nem rajzolunk, lépjünk ki
+
+      let offsetX = 0;
+      let offsetY = 0;
+
       // Egér esemény esetén
-      [lastX, lastY] = [e.offsetX, e.offsetY];
-    } else if (e instanceof TouchEvent) {
-      // Érintés esemény esetén
+      if (e instanceof MouseEvent) {
+          offsetX = e.offsetX;
+          offsetY = e.offsetY;
+      }
+        // Érintés esemény esetén
+      else if (e instanceof TouchEvent) {
       const touch = e.touches[0] || e.changedTouches[0];
-      [lastX, lastY] = [
-        (touch?.clientX ?? 0) - canvas!.offsetLeft,
-        (touch?.clientY ?? 0) - canvas!.offsetTop
-      ];
-    }
-  };
-  
-  const stopDrawing = () => {
-    isDrawing = false;
-    [lastX, lastY] = [null, null];
-  };
-
-  const setPencilModeActive = (value: boolean) => {
-    isPencilModeActive = value;
-  };
-
-  const getPencilModeActive = () => {
-    return isPencilModeActive;
-  };
-
-  const getCTXColor = () => {
-    return ctx!.strokeStyle;
+      offsetX = touch.clientX - canvas!.offsetLeft;
+      offsetY = touch.clientY - canvas!.offsetTop;
   }
+      ctx.beginPath();             // Kezdünk egy új útvonalat
+      if (lastX !== null && lastY !== null) {
+          ctx.moveTo(lastX, lastY);     // Rajzolás a korábbi pozícióból
+      }
+      ctx.lineTo(offsetX, offsetY); // Rajzolás az új pozícióig
+      ctx.stroke();                 // Vonal megjelenítése
+      [lastX, lastY] = [offsetX, offsetY]; // Frissítjük az utolsó pozíciót
+};
 
-  const getEraserSize = () => {
-    return activeEraseSize;
-  }
+const startDrawing = (e: MouseEvent | TouchEvent) => {
+  isDrawing = true;
 
-  const getPencilSize = () => {
-    return activeSize;
+  if (e instanceof MouseEvent) {
+    // Egér esemény esetén
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  } else if (e instanceof TouchEvent) {
+    // Érintés esemény esetén
+    const touch = e.touches[0] || e.changedTouches[0];
+    [lastX, lastY] = [
+      (touch?.clientX ?? 0) - canvas!.offsetLeft,
+      (touch?.clientY ?? 0) - canvas!.offsetTop
+    ];
   }
+};
+
+const stopDrawing = () => {
+  isDrawing = false;
+  [lastX, lastY] = [null, null];
+};
+
+const setPencilModeActive = (value: boolean) => {
+  isPencilModeActive = value;
+};
+
+const getPencilModeActive = () => {
+  return isPencilModeActive;
+};
+
+const getCTXColor = () => {
+  return ctx!.strokeStyle;
+}
+
+const getEraserSize = () => {
+  return activeEraseSize;
+}
+
+const getPencilSize = () => {
+  return activeSize;
+}
+
+/* INDEXEDDB */
+
+const openDrawingsDatabase = async (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+      const request = indexedDB.open('siteNotesDB');
+
+      request.onupgradeneeded = (event: any) => {
+          const db = event.target.result;
+
+          // Ellenőrizzük, hogy az drawings tábla létezik-e, ha nem, hozzuk létre
+          if (!db.objectStoreNames.contains('drawings')) {
+              db.createObjectStore('drawings', { keyPath: 'id' });
+              console.log(`Object store "${'drawings'}" created.`);
+          }
+      };
+
+      request.onsuccess = () => {
+          const db = request.result;
+
+          // Ha új oldalra nyitjuk az adatbázist, ellenőrizzük újra az drawings táblát
+          if (!db.objectStoreNames.contains('drawings')) {
+              const version = db.version + 1; // Verzió emelése szükséges új tábla létrehozásához
+              db.close();
+
+              const upgradeRequest = indexedDB.open('siteNotesDB', version);
+              upgradeRequest.onupgradeneeded = (upgradeEvent: any) => {
+                  const upgradeDb = upgradeEvent.target.result;
+
+                  if (!upgradeDb.objectStoreNames.contains('drawings')) {
+                      upgradeDb.createObjectStore('drawings', { keyPath: 'id' });
+                      console.log(`Object store "${'drawings'}" created during upgrade.`);
+                  }
+              };
+
+              upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
+              upgradeRequest.onerror = (event: any) => reject(event.target.error);
+          } else {
+              resolve(db); // Az adatbázis már tartalmazza a 'drawings' táblát
+          }
+      };
+
+      request.onerror = (event: any) => {
+          reject(event.target.error);
+      };
+    });
+};
+
+const loadCanvasDrawing = async (): Promise<void> => {
+  const db = await openDrawingsDatabase();
+  const transaction = db.transaction('drawings', 'readonly');
+  const store = transaction.objectStore('drawings');
+  const request = store.get(window.location.href);
+
+  return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+          const result = request.result;
+          if (result && result.data && canvas && ctx) {
+              const img = new Image();
+              img.src = result.data;
+              img.onload = () => {
+                  ctx!.drawImage(img, 0, 0);
+                  resolve();
+              };
+          } else {
+              resolve(); // Nem volt mentett adat
+          }
+      };
+
+      request.onerror = () => reject(request.error);
+  });
+};
+
+const saveCanvasDrawing = async (): Promise<void> => {
+  if (!canvas) return;
+
+  const dataURL = canvas.toDataURL();
+  const drawingData = {
+      id: window.location.href,
+      data: dataURL,
+  };
+
+  try {
+      await saveDrawingData('drawings', drawingData);
+      console.log('Rajz mentve!');
+  } catch (error) {
+      console.error('Rajz mentése sikertelen:', error);
+  }
+};
+
+const saveDrawingData = async (storeName: string, data: any): Promise<void> => {
+  const db = await openDrawingsDatabase();
+  const transaction = db.transaction(storeName, 'readwrite');
+  const store = transaction.objectStore(storeName);
+
+  // Add or update the data based on the ID
+  store.put(data);
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+  });
+};
+
+window.addEventListener('beforeunload', async () => {
+  await saveCanvasDrawing();
+});
+
+window.addEventListener('load', async () => {
+  await setupCanvas();
+});
 
   export { 
     togglePencilMode, 
@@ -309,5 +421,3 @@ const stopPencilMode = () => {
     getEraserSize,
     getPencilSize
   };
-  
-  

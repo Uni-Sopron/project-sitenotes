@@ -33,3 +33,27 @@ chrome.runtime.onMessage.addListener((message) => {
         return true; // Keep the message channel open for async responses
     }
 });
+
+// background.ts
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.status === 'complete') {
+        chrome.tabs.sendMessage(tabId, { action: "loadNotes" }, () => {
+            if (chrome.runtime.lastError) {
+                console.log("Error sending message to content script:", chrome.runtime.lastError.message);
+            }
+        });
+    }
+});
+
+// Általános üzenetkezelő minden action továbbítására
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message.action) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]?.id) {
+                chrome.tabs.sendMessage(tabs[0].id, message, sendResponse);
+            }
+        });
+        return true; // Az aszinkron válasz biztosítása érdekében
+    }
+});
