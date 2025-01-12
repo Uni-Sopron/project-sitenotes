@@ -60,7 +60,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Törlés gomb
     const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Törlés';
+    deleteButton.textContent = 'Delete';
     deleteButton.onclick = async () => {
         document.body.removeChild(wrapper);
         document.body.removeChild(menu);
@@ -69,7 +69,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Forgatás gomb
     const rotateButton = document.createElement('button');
-    rotateButton.textContent = 'Forgatás';
+    rotateButton.textContent = 'Rotate';
     rotateButton.onclick = async () => {
         const img = wrapper.querySelector('img');
         if (img) {
@@ -83,7 +83,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Tükrözés gomb
     const flipButton = document.createElement('button');
-    flipButton.textContent = 'Tükrözés';
+    flipButton.textContent = 'Flip';
     flipButton.onclick = async () => {
         const img = wrapper.querySelector('img');
         if (img) {
@@ -97,7 +97,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Méretezés gomb
     const resizeButton = document.createElement('button');
-    resizeButton.textContent = 'Méretezés Arányosan';
+    resizeButton.textContent = 'Resize';
     let isAspectRatioLocked = false;
     resizeButton.onclick = () => {
         isAspectRatioLocked = !isAspectRatioLocked;
@@ -205,7 +205,7 @@ const handleImageUpload = () => {
                     wrapper.style.left = `${scrollX + 200}px`;
                     wrapper.style.width = `${width}px`;
                     wrapper.style.height = `${height}px`;
-                    
+
                     wrapper.style.boxSizing = 'border-box'; // Prevents border from affecting size
                     wrapper.style.overflow = 'visible'; // Allow overflow for resizing handles
                     wrapper.style.zIndex = '9991'; // Ensure the image is on top of most elements - was 8000?
@@ -245,7 +245,7 @@ const handleImageUpload = () => {
 
 
                     const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Törlés';
+                    deleteButton.textContent = 'Delete';
                     deleteButton.style.marginLeft = '0px';
                     deleteButton.style.marginTop = '0px';
                     deleteButton.style.padding = '8px 12px';
@@ -257,200 +257,200 @@ const handleImageUpload = () => {
                     deleteButton.style.border = '1px solid #ddd'; // Határvonal
                     deleteButton.onclick = () => {
 
-                    // Törlés gombhoz adatbázis művelet
-                    deleteButton.onclick = async () => {
-                        document.body.removeChild(wrapper);
-                        document.body.removeChild(menu);
-                        await deleteImageFromDB(imageData.id);
+                        // Törlés gombhoz adatbázis művelet
+                        deleteButton.onclick = async () => {
+                            document.body.removeChild(wrapper);
+                            document.body.removeChild(menu);
+                            await deleteImageFromDB(imageData.id);
+                        };
+                        const resizeButton = document.createElement('button');
+                        resizeButton.textContent = 'Resize';
+                        resizeButton.style.marginLeft = '0px';
+                        resizeButton.style.marginTop = '0px';
+                        resizeButton.style.padding = '8px 12px';
+                        resizeButton.style.borderRadius = '5px';
+                        resizeButton.style.backgroundColor = '#f8f9fa';
+                        resizeButton.style.color = 'black';
+                        resizeButton.style.fontFamily = 'Nunito'; // Betűtípus
+                        resizeButton.style.fontSize = '16px'; // Betűméret
+                        resizeButton.style.border = '1px solid #ddd'; // Határvonal
+
+                        let isAspectRatioLocked = false; // Track if aspect ratio is locked
+
+                        resizeButton.onclick = () => {
+                            isAspectRatioLocked = !isAspectRatioLocked; // Toggle aspect ratio lock
+                            resizeButton.style.backgroundColor = isAspectRatioLocked ? 'lightgreen' : ''; // Indicate if locked
+                            resizeHandle.style.display = isAspectRatioLocked ? 'block' : 'none'; // Show or hide resize handle
+                        };
+
+                        const rotateButton = document.createElement('button');
+                        rotateButton.textContent = 'Rotate';
+                        rotateButton.style.marginLeft = '0px';
+                        rotateButton.style.marginTop = '0px';
+                        rotateButton.style.padding = '8px 12px';
+                        rotateButton.style.borderRadius = '5px';
+                        rotateButton.style.backgroundColor = '#f8f9fa';
+                        rotateButton.style.color = 'black';
+                        rotateButton.style.fontFamily = 'Nunito'; // Betűtípus
+                        rotateButton.style.fontSize = '16px'; // Betűméret
+                        rotateButton.style.border = '1px solid #ddd'; // Határvonal
+
+                        rotateButton.onclick = () => {
+                            const currentRotation = parseFloat(resizedImg.style.transform.replace('rotate(', '').replace('deg)', '') || '0');
+                            const newRotation = currentRotation + 90;
+                            resizedImg.style.transform = `rotate(${newRotation}deg)`;
+                            saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
+                        };
+
+                        const flipButton = document.createElement('button');
+                        flipButton.textContent = 'Flip';
+
+                        flipButton.style.marginLeft = '0px';
+                        flipButton.style.marginTop = '0px';
+                        flipButton.style.padding = '8px 12px';
+                        flipButton.style.borderRadius = '5px';
+                        flipButton.style.backgroundColor = '#f8f9fa';
+                        flipButton.style.color = 'black';
+                        flipButton.style.fontFamily = 'Nunito'; // Betűtípus
+                        flipButton.style.fontSize = '16px'; // Betűméret
+                        flipButton.style.border = '1px solid #ddd'; // Határvonal
+                        flipButton.onclick = () => {
+                            const currentTransform = resizedImg.style.transform || '';
+                            resizedImg.style.transform = `${currentTransform} scaleX(-1)`;
+                            saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
+                        };
+
+                        menu.appendChild(deleteButton);
+                        menu.appendChild(resizeButton);
+                        menu.appendChild(rotateButton);
+                        menu.appendChild(flipButton);
+                        wrapper.appendChild(resizedImg);
+                        document.body.appendChild(wrapper);
+                        document.body.appendChild(menu);
+
+                        // Function to update menu position
+                        const updateMenuPosition = () => {
+                            menu.style.display = 'block'; // Show menu
+                            menu.style.top = `${wrapper.offsetTop + wrapper.offsetHeight + 10}px`; // Position the menu below the image
+                            menu.style.left = `${wrapper.offsetLeft}px`; // Align the menu with the left edge of the image
+                        };
+
+                        // Show menu on image double-click
+                        wrapper.addEventListener('dblclick', (e) => {
+                            e.stopPropagation(); // Prevent the click event from propagating to the document
+                            updateMenuPosition(); // Update the menu position based on current dimensions
+                        });
+
+                        // Hide menu when clicking outside
+                        document.addEventListener('click', () => {
+                            menu.style.display = 'none'; // Hide menu
+                        });
+
+                        // Add drag functionality to the wrapper
+                        let isDraggingImage = false;
+                        let imgOffsetX = 0;
+                        let imgOffsetY = 0;
+
+                        wrapper.addEventListener('mousedown', (e) => {
+                            if (e.target === resizeHandle) {
+                                // Don't drag the image if resizing
+                                return;
+                            }
+                            isDraggingImage = true;
+                            imgOffsetX = e.clientX - wrapper.offsetLeft;
+                            imgOffsetY = e.clientY - wrapper.offsetTop;
+                        });
+
+                        // Handle resizing with the resize handle
+                        let isResizing = false;
+                        resizeHandle.addEventListener('mousedown', (e) => {
+                            e.preventDefault(); // Prevent default behavior
+                            isResizing = true;
+                        });
+
+                        document.addEventListener('mousemove', (e) => {
+                            if (isDraggingImage) {
+                                wrapper.style.left = `${e.clientX - imgOffsetX}px`;
+                                wrapper.style.top = `${e.clientY - imgOffsetY}px`;
+                            }
+
+                            if (isResizing) {
+                                let newWidth = e.clientX - wrapper.getBoundingClientRect().left;
+                                let newHeight = isAspectRatioLocked
+                                    ? (newWidth * height) / width // Maintain aspect ratio
+                                    : e.clientY - wrapper.getBoundingClientRect().top;
+
+                                wrapper.style.width = `${newWidth}px`;
+                                wrapper.style.height = `${newHeight}px`;
+                                resizedImg.style.width = '100%';
+                                resizedImg.style.height = '100%';
+
+                                updateMenuPosition();
+                            }
+                        });
+
+                        // Esemény végén mentés
+                        document.addEventListener('mouseup', () => {
+                            isDraggingImage = false;
+                            isResizing = false;
+
+                            // Mentés az IndexedDB-be
+                            saveCurrentState(wrapper, imageData.id);
+                        });
+
+
+                        document.addEventListener('mouseup', () => {
+                            isDraggingImage = false;
+                            isResizing = false;
+                        });
+
+                        // After the image is loaded and resized, save the image to IndexedDB
+                        const imageData = {
+                            id: Date.now(), // Unique ID for the image
+                            src: img.src, // Base64 string of the image
+                            position: { x: 200, y: 200 }, // Example position
+                            size: { width, height }, // Resized dimensions
+                        };
+
+                        // const { saveImage } = await import('./database'); death of database.ts
+                        saveImage(window.location.href, imageData); // Save the image to IndexedDB
                     };
-                    const resizeButton = document.createElement('button');
-                    resizeButton.textContent = 'Méretezés';
-                    resizeButton.style.marginLeft = '0px';
-                    resizeButton.style.marginTop = '0px';
-                    resizeButton.style.padding = '8px 12px';
-                    resizeButton.style.borderRadius = '5px';
-                    resizeButton.style.backgroundColor = '#f8f9fa';
-                    resizeButton.style.color = 'black';
-                    resizeButton.style.fontFamily = 'Nunito'; // Betűtípus
-                    resizeButton.style.fontSize = '16px'; // Betűméret
-                    resizeButton.style.border = '1px solid #ddd'; // Határvonal
-
-                    let isAspectRatioLocked = false; // Track if aspect ratio is locked
-
-                    resizeButton.onclick = () => {
-                        isAspectRatioLocked = !isAspectRatioLocked; // Toggle aspect ratio lock
-                        resizeButton.style.backgroundColor = isAspectRatioLocked ? 'lightgreen' : ''; // Indicate if locked
-                        resizeHandle.style.display = isAspectRatioLocked ? 'block' : 'none'; // Show or hide resize handle
-                    };
-
-                    const rotateButton = document.createElement('button');
-                    rotateButton.textContent = 'Forgatás';
-                    rotateButton.style.marginLeft = '0px';
-                    rotateButton.style.marginTop = '0px';
-                    rotateButton.style.padding = '8px 12px';
-                    rotateButton.style.borderRadius = '5px';
-                    rotateButton.style.backgroundColor = '#f8f9fa';
-                    rotateButton.style.color = 'black';
-                    rotateButton.style.fontFamily = 'Nunito'; // Betűtípus
-                    rotateButton.style.fontSize = '16px'; // Betűméret
-                    rotateButton.style.border = '1px solid #ddd'; // Határvonal
-
-                    rotateButton.onclick = () => {
-                        const currentRotation = parseFloat(resizedImg.style.transform.replace('rotate(', '').replace('deg)', '') || '0');
-                        const newRotation = currentRotation + 90;
-                        resizedImg.style.transform = `rotate(${newRotation}deg)`;
-                        saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
-                    };
-                    
-                    const flipButton = document.createElement('button');
-                    flipButton.textContent = 'Tükrözés';
-
-                    flipButton.style.marginLeft = '0px';
-                    flipButton.style.marginTop = '0px';
-                    flipButton.style.padding = '8px 12px';
-                    flipButton.style.borderRadius = '5px';
-                    flipButton.style.backgroundColor = '#f8f9fa';
-                    flipButton.style.color = 'black';
-                    flipButton.style.fontFamily = 'Nunito'; // Betűtípus
-                    flipButton.style.fontSize = '16px'; // Betűméret
-                    flipButton.style.border = '1px solid #ddd'; // Határvonal
-                    flipButton.onclick = () => {
-                        const currentTransform = resizedImg.style.transform || '';
-                        resizedImg.style.transform = `${currentTransform} scaleX(-1)`;
-                        saveCurrentState(wrapper, imageData.id); // Mentés - nem jó
-                    };
-                    
-                    menu.appendChild(deleteButton);
-                    menu.appendChild(resizeButton);
-                    menu.appendChild(rotateButton);
-                    menu.appendChild(flipButton);
-                    wrapper.appendChild(resizedImg);
-                    document.body.appendChild(wrapper);
-                    document.body.appendChild(menu);
-
-                    // Function to update menu position
-                    const updateMenuPosition = () => {
-                        menu.style.display = 'block'; // Show menu
-                        menu.style.top = `${wrapper.offsetTop + wrapper.offsetHeight + 10}px`; // Position the menu below the image
-                        menu.style.left = `${wrapper.offsetLeft}px`; // Align the menu with the left edge of the image
-                    };
-
-                    // Show menu on image double-click
-                    wrapper.addEventListener('dblclick', (e) => {
-                        e.stopPropagation(); // Prevent the click event from propagating to the document
-                        updateMenuPosition(); // Update the menu position based on current dimensions
-                    });
-
-                    // Hide menu when clicking outside
-                    document.addEventListener('click', () => {
-                        menu.style.display = 'none'; // Hide menu
-                    });
-
-                    // Add drag functionality to the wrapper
-                    let isDraggingImage = false;
-                    let imgOffsetX = 0;
-                    let imgOffsetY = 0;
-
-                    wrapper.addEventListener('mousedown', (e) => {
-                        if (e.target === resizeHandle) {
-                            // Don't drag the image if resizing
-                            return;
-                        }
-                        isDraggingImage = true;
-                        imgOffsetX = e.clientX - wrapper.offsetLeft;
-                        imgOffsetY = e.clientY - wrapper.offsetTop;
-                    });
-
-                    // Handle resizing with the resize handle
-                    let isResizing = false;
-                    resizeHandle.addEventListener('mousedown', (e) => {
-                        e.preventDefault(); // Prevent default behavior
-                        isResizing = true;
-                    });
-
-                    document.addEventListener('mousemove', (e) => {
-                        if (isDraggingImage) {
-                            wrapper.style.left = `${e.clientX - imgOffsetX}px`;
-                            wrapper.style.top = `${e.clientY - imgOffsetY}px`;
-                        }
-                    
-                        if (isResizing) {
-                            let newWidth = e.clientX - wrapper.getBoundingClientRect().left;
-                            let newHeight = isAspectRatioLocked
-                                ? (newWidth * height) / width // Maintain aspect ratio
-                                : e.clientY - wrapper.getBoundingClientRect().top;
-                    
-                            wrapper.style.width = `${newWidth}px`;
-                            wrapper.style.height = `${newHeight}px`;
-                            resizedImg.style.width = '100%';
-                            resizedImg.style.height = '100%';
-                    
-                            updateMenuPosition();
-                        }
-                    });
-                    
-                    // Esemény végén mentés
-                    document.addEventListener('mouseup', () => {
-                        isDraggingImage = false;
-                        isResizing = false;
-                    
-                        // Mentés az IndexedDB-be
-                        saveCurrentState(wrapper, imageData.id);
-                    });
-                    
-
-                    document.addEventListener('mouseup', () => {
-                        isDraggingImage = false;
-                        isResizing = false;
-                    });
-
-                    // After the image is loaded and resized, save the image to IndexedDB
-                    const imageData = {
-                        id: Date.now(), // Unique ID for the image
-                        src: img.src, // Base64 string of the image
-                        position: { x: 200, y: 200 }, // Example position
-                        size: { width, height }, // Resized dimensions
-                    };
-
-                    // const { saveImage } = await import('./database'); death of database.ts
-                    saveImage(window.location.href, imageData); // Save the image to IndexedDB
                 };
-            };
 
-            reader.readAsDataURL(file); // Read the file as a data URL (base64 encoding)
-        }
+                reader.readAsDataURL(file); // Read the file as a data URL (base64 encoding)
+            }
     };
 
     document.body.appendChild(input);
     input.click(); // Trigger the file input dialog
 };
 
-const saveImage = async (url: string, imageData: { 
-    id: number; 
-    src: string; 
-    position: { x: number; y: number }; 
-    size: { width: number; height: number }; 
-  }): Promise<void> => {
-      const image = {
-          ...imageData,
-          timestamp: {
-              created: new Date().toISOString(),
-              modified: new Date().toISOString(),
-          },
-          url: url
-      };
-  
-      // Ellenőrizd, hogy az image.src tartalmaz-e adatot
-      if (!image.src) {
-          console.error('Image src is missing.');
-          return;
-      }
-  
-      await saveImageData('images', image);
-  };
-  
-  // KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
-  const openImageDatabase = async (): Promise<IDBDatabase> => {
+const saveImage = async (url: string, imageData: {
+    id: number;
+    src: string;
+    position: { x: number; y: number };
+    size: { width: number; height: number };
+}): Promise<void> => {
+    const image = {
+        ...imageData,
+        timestamp: {
+            created: new Date().toISOString(),
+            modified: new Date().toISOString(),
+        },
+        url: url
+    };
+
+    // Ellenőrizd, hogy az image.src tartalmaz-e adatot
+    if (!image.src) {
+        console.error('Image src is missing.');
+        return;
+    }
+
+    await saveImageData('images', image);
+};
+
+// KELL MAJD A TÖBBINEK IS HASONLÓAN: HA NEM LÉTEZIK TÁBLA, HOZZA LÉTRE
+const openImageDatabase = async (): Promise<IDBDatabase> => {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open('siteNotesDB', 2);
 

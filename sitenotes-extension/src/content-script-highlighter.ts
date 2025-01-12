@@ -4,14 +4,30 @@ let activeColor: string = '#6969C0';
 
 const setisdeleteHighlighter = (value: boolean) => {
   isdeleteHighlighter = value;
+  const links = document.querySelectorAll('a');
+  if (isdeleteHighlighter) {
+    links.forEach(link => link.addEventListener('click', preventLinkClick, true));
+  } else {
+    links.forEach(link => link.removeEventListener('click', preventLinkClick, true));
+  }
 };
 
 const stopHighlighterMode = () => {
   document.body.style.cursor = 'default';
   document.removeEventListener('mouseup', highlightSelection);
   isHighlighterModeActive = false;
+  const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    link.removeEventListener('click', preventLinkClick, true);
+  });
 }
-
+const preventLinkClick = (event: MouseEvent) => {
+  if (isHighlighterModeActive || isdeleteHighlighter) {
+    event.preventDefault();
+    event.stopPropagation();
+   
+  }
+};
 // HIGHLIGHTER FUNCTIONALITY
 //Kiszinezi sárgával a kijelölt szöveget (egyenlőre csak 1 szinnel müködik)
 const startHighlighterMode = () => {
@@ -19,6 +35,10 @@ const startHighlighterMode = () => {
   document.body.style.cursor = 'text';
   document.addEventListener('mouseup', highlightSelection);
   isHighlighterModeActive = true;
+  const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    link.addEventListener('click', preventLinkClick, true);
+  });
 };
 
 const setisHighlighterModeActive = (value: boolean) => {
@@ -42,6 +62,7 @@ const setHighlighterColor = (color: string) => {
 
 
 const highlightSelection = () => {
+
   if (!isHighlighterModeActive) return;
   const selection = window.getSelection();
   console.log("ez a kiemelés.", selection);
@@ -66,23 +87,10 @@ const highlightSelection = () => {
 
 
 
-// // Segédfüggvény a komplementer szín kiszámításához
-// const getComplementaryColor = (color: string): string => {
-//   // Szín beolvasása és RGB komponensekre bontása
-//   const rgbMatch = color.match(/\d+/g);
-//   if (rgbMatch && rgbMatch.length === 3) {
-//     const [r, g, b] = rgbMatch.map(Number); // Piros, zöld, kék komponensek
-//     const compR = 255 - r; // Komplementer piros
-//     const compG = 255 - g; // Komplementer zöld
-//     const compB = 255 - b; // Komplementer kék
-//     return `rgb(${compR}, ${compG}, ${compB})`;
-//   }
-//   // Ha nem sikerült a színt feldolgozni, visszaadjuk alapértelmezetten a fehéret
-//   return 'rgb(255, 255, 255)';
-// };
 
 const onHighlightMouseEnter = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
+
     const target = event.currentTarget as HTMLElement;
 
     // Eredeti szín eltárolása
@@ -90,9 +98,6 @@ const onHighlightMouseEnter = (event: MouseEvent): void => {
       target.dataset.originalColor = target.style.backgroundColor;
     }
 
-    // // Komplementer szín kiszámítása
-    // const originalColor = target.style.backgroundColor || 'rgb(255, 255, 0)'; // Default sárga
-    // const complementaryColor = getComplementaryColor(originalColor);
 
     // Háttérszín beállítása a komplementer színre
     target.style.backgroundColor = '#D4D4D4'
@@ -101,6 +106,8 @@ const onHighlightMouseEnter = (event: MouseEvent): void => {
 
 const onHighlightMouseLeave = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
+
+
     const target = event.currentTarget as HTMLElement;
 
 
@@ -113,6 +120,8 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
 
 const removeHighlight = (event: MouseEvent): void => {
   if (isdeleteHighlighter) {
+
+
     const target = event.currentTarget as HTMLElement;
     const parent = target.parentNode;
 
