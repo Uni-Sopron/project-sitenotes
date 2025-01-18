@@ -174,12 +174,21 @@ const removeHighlight = async (event: MouseEvent) => {
   }
 };
 
-const saveHighlightToDB = async (element: HTMLElement, color: string, text: string, startOffset: number, endOffset: number) => {
+const saveHighlightToDB = async (
+  element: HTMLElement,
+  color: string,
+  text: string,
+  startOffset: number,
+  endOffset: number
+) => {
   const db = await openHighlighterDatabase();
   const transaction = db.transaction('highlighter', 'readwrite');
   const store = transaction.objectStore('highlighter');
 
   const uniqueSelector = getUniqueSelector(element);
+
+  // Számítsuk ki, hogy hányadik példány
+  const instanceIndex = calculateInstanceIndex(element, text);
 
   const highlightData = {
     id: `${text}-${color}-${Date.now()}`, // Egyedi azonosító
@@ -188,6 +197,7 @@ const saveHighlightToDB = async (element: HTMLElement, color: string, text: stri
     text, // A kijelölt szöveg
     startOffset, // A szöveg kezdő pozíciója
     endOffset, // A szöveg végpozíciója
+    instanceIndex, // Hanyadik példány
   };
 
   store.put(highlightData);
@@ -195,8 +205,33 @@ const saveHighlightToDB = async (element: HTMLElement, color: string, text: stri
 
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve(undefined);
-    transaction.onerror = (event) => reject((event.target as IDBRequest).error);
+    transaction.onerror = (event) =>
+      reject((event.target as IDBRequest).error);
   });
+};
+
+// Segéd függvény az instance index kiszámításához
+const calculateInstanceIndex = (element: HTMLElement, text: string): number => {
+  const nodes = getTextNodesIn(element);
+  let index = 0;
+  let instanceCount = 0;
+
+  nodes.forEach((node) => {
+    const nodeText = node.nodeValue || '';
+    let startIndex = 0;
+
+    while ((startIndex = nodeText.indexOf(text, startIndex)) !== -1) {
+      instanceCount++;
+      if (startIndex !== -1 && nodeText.substring(startIndex, startIndex + text.length) === text) {
+        if (instanceCount > index) {
+          index = instanceCount;
+        }
+      }
+      startIndex += text.length;
+    }
+  });
+
+  return index;
 };
 
 const getUniqueSelector = (element: HTMLElement): string => {
@@ -280,30 +315,44 @@ const restoreHighlightsFromDB = async () => {
     const highlights = request.result;
 
     highlights.forEach((highlight: any) => {
-      const { selector, color, text } = highlight;
+      const { selector, color, text, instanceIndex } = highlight;
       const element = document.querySelector(selector);
 
       if (element) {
         const nodes = getTextNodesIn(element);
+        let currentIndex = 0;
+        let found = false;
+
         nodes.forEach((node) => {
+          if (found) return;
+
           const nodeText = node.nodeValue || '';
-          const startIndex = nodeText.indexOf(text);
+          let startIndex = 0;
 
-          if (startIndex !== -1) {
-            const range = document.createRange();
-            range.setStart(node, startIndex);
-            range.setEnd(node, startIndex + text.length);
+          while ((startIndex = nodeText.indexOf(text, startIndex)) !== -1) {
+            currentIndex++;
 
-            const mark = document.createElement('mark');
-            mark.style.backgroundColor = color;
-            mark.textContent = text;
+            if (currentIndex === instanceIndex) {
+              const range = document.createRange();
+              range.setStart(node, startIndex);
+              range.setEnd(node, startIndex + text.length);
 
-            range.deleteContents();
-            range.insertNode(mark);
+              const mark = document.createElement('mark');
+              mark.style.backgroundColor = color;
+              mark.textContent = text;
 
-            mark.addEventListener('click', removeHighlight);
-            mark.addEventListener('mouseenter', onHighlightMouseEnter);
-            mark.addEventListener('mouseleave', onHighlightMouseLeave);
+              range.deleteContents();
+              range.insertNode(mark);
+
+              mark.addEventListener('click', removeHighlight);
+              mark.addEventListener('mouseenter', onHighlightMouseEnter);
+              mark.addEventListener('mouseleave', onHighlightMouseLeave);
+
+              found = true;
+              break;
+            }
+
+            startIndex += text.length;
           }
         });
       }
