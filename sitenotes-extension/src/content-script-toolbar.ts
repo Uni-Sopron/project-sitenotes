@@ -347,7 +347,7 @@ const toggleEraserButton = () => {
 
     // Radír méret beállító
     const sizeLabel = document.createElement('label');
-    sizeLabel.textContent = 'Radír mérete: ';
+    sizeLabel.textContent = 'Eraser size: ';
     sizeLabel.style.color = 'black'; // Szöveg színe
     sizeLabel.style.fontFamily = 'Nunito'; // Betűtípus
     sizeLabel.style.fontSize = '16px'; // Betűméret
@@ -364,7 +364,7 @@ const toggleEraserButton = () => {
     };
 
     const clearButton = document.createElement('button');
-    clearButton.textContent = 'Törlés';
+    clearButton.textContent = 'Delete';
     clearButton.addEventListener('click', clearCanvas);
     clearButton.style.marginLeft = '0px'; // Balra igazítás
     clearButton.style.marginTop = '5px'; // Térköz az előző label objektumtól
@@ -456,7 +456,7 @@ const togglePencilButton = () => {
     pencilMenu.style.flexDirection = 'column'; // Oszlopba rendezés
 
     const sizeLabel = document.createElement('label');
-    sizeLabel.textContent = 'Ceruza mérete: ';
+    sizeLabel.textContent = 'Pencil size: ';
     sizeLabel.style.color = 'black'; // Szöveg színe
     sizeLabel.style.fontFamily = 'Nunito'; // Betűtípus
     sizeLabel.style.fontSize = '16px'; // Betűméret
@@ -474,7 +474,7 @@ const togglePencilButton = () => {
     };
 
     const activeColorLabel = document.createElement('label');
-    activeColorLabel.textContent = 'Aktív szín: ';
+    activeColorLabel.textContent = 'Active color: ';
     activeColorLabel.style.textAlign = 'center'; // Középre igazítás
     activeColorLabel.style.marginBottom = '5px'; // Térköz az előző elemhez
     activeColorLabel.style.marginTop = '10px'; // Térköz az előző elemhez
@@ -671,7 +671,7 @@ const toggleColorPicker = (buttonId: string) => {
     colorPickerMenu.style.flexDirection = 'column'; // Oszlopba rendezés
 
     const colorLabel = document.createElement('label');
-    colorLabel.textContent = 'Színválasztó ';
+    colorLabel.textContent = 'Color picker ';
     colorLabel.style.fontWeight = 'bold'; // Vastag betű
     colorLabel.style.marginBottom = '10px'; // Térköz az előző elemhez
 

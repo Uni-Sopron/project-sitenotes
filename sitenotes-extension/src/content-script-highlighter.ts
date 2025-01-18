@@ -4,12 +4,29 @@ let activeColor: string = '#6969C0';
 
 const setisdeleteHighlighter = (value: boolean) => {
   isdeleteHighlighter = value;
+  const links = document.querySelectorAll('a');
+  if (isdeleteHighlighter) {
+    links.forEach(link => link.addEventListener('click', preventLinkClick, true));
+  } else {
+    links.forEach(link => link.removeEventListener('click', preventLinkClick, true));
+  }
+};
+
+const preventLinkClick = (event: MouseEvent) => {
+  if (isHighlighterModeActive || isdeleteHighlighter) {
+    event.preventDefault();
+    event.stopPropagation(); 
+  }
 };
 
 const stopHighlighterMode = () => {
   document.body.style.cursor = 'default';
   document.removeEventListener('mouseup', highlightSelection);
   isHighlighterModeActive = false;
+  const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    link.addEventListener('click', preventLinkClick, true);
+  });
 }
 
 // HIGHLIGHTER FUNCTIONALITY

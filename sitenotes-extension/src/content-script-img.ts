@@ -60,7 +60,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Törlés gomb
     const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Törlés';
+    deleteButton.textContent = 'Delete';
     deleteButton.onclick = async () => {
         document.body.removeChild(wrapper);
         document.body.removeChild(menu);
@@ -69,7 +69,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Forgatás gomb
     const rotateButton = document.createElement('button');
-    rotateButton.textContent = 'Forgatás';
+    rotateButton.textContent = 'Rotate';
     rotateButton.onclick = async () => {
         const img = wrapper.querySelector('img');
         if (img) {
@@ -83,7 +83,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Tükrözés gomb
     const flipButton = document.createElement('button');
-    flipButton.textContent = 'Tükrözés';
+    flipButton.textContent = 'Flip';
     flipButton.onclick = async () => {
         const img = wrapper.querySelector('img');
         if (img) {
@@ -97,7 +97,7 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
 
     // Méretezés gomb
     const resizeButton = document.createElement('button');
-    resizeButton.textContent = 'Méretezés Arányosan';
+    resizeButton.textContent = 'Resize';
     let isAspectRatioLocked = false;
     resizeButton.onclick = () => {
         isAspectRatioLocked = !isAspectRatioLocked;
@@ -230,7 +230,7 @@ const handleImageUpload = () => {
                     menu.style.display = 'none'; // Initially hidden
 
                     const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Törlés';
+                    deleteButton.textContent = 'Delete';
                     // Törlés gombhoz adatbázis művelet
                     deleteButton.onclick = async () => {
                         document.body.removeChild(wrapper);
@@ -238,7 +238,7 @@ const handleImageUpload = () => {
                         await deleteImageFromDB(imageData.id);
                     };
                     const resizeButton = document.createElement('button');
-                    resizeButton.textContent = 'Méretezés Arányosan';
+                    resizeButton.textContent = 'Resize';
                     let isAspectRatioLocked = false; // Track if aspect ratio is locked
 
                     resizeButton.onclick = () => {
@@ -248,7 +248,7 @@ const handleImageUpload = () => {
                     };
 
                     const rotateButton = document.createElement('button');
-                    rotateButton.textContent = 'Forgatás';
+                    rotateButton.textContent = 'Rotate';
                     rotateButton.onclick = () => {
                         const currentRotation = parseFloat(resizedImg.style.transform.replace('rotate(', '').replace('deg)', '') || '0');
                         const newRotation = currentRotation + 90;
@@ -257,7 +257,7 @@ const handleImageUpload = () => {
                     };
                     
                     const flipButton = document.createElement('button');
-                    flipButton.textContent = 'Tükrözés';
+                    flipButton.textContent = 'Flip';
                     flipButton.onclick = () => {
                         const currentTransform = resizedImg.style.transform || '';
                         resizedImg.style.transform = `${currentTransform} scaleX(-1)`;
