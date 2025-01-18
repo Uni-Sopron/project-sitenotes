@@ -112,6 +112,20 @@ const onHighlightMouseLeave = (event: MouseEvent): void => {
   }
 };
 
+const savePageURLToChromeStorageHighlighter = (url: string) => {
+  chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+      const pages = result.modifiedPages as string[];
+
+      if (!pages.includes(url)) {
+          pages.push(url);
+
+          chrome.storage.local.set({ modifiedPages: pages }, () => {
+              console.log(`Page URL saved to Chrome Storage: ${url}`);
+          });
+      }
+  });
+};
+
 const removeHighlight = async (event: MouseEvent) => {
   if (!isdeleteHighlighter) return;
 
@@ -136,6 +150,7 @@ const removeHighlight = async (event: MouseEvent) => {
         if (highlight.text === text) {
           store.delete(highlight.id);
           console.log(`Highlight removed from DB: ${highlight.id}`);
+          savePageURLToChromeStorageHighlighter(window.location.href);
         }
       });
     };
@@ -176,6 +191,7 @@ const saveHighlightToDB = async (element: HTMLElement, color: string, text: stri
   };
 
   store.put(highlightData);
+  savePageURLToChromeStorageHighlighter(window.location.href);
 
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve(undefined);
@@ -208,9 +224,6 @@ const getUniqueSelector = (element: HTMLElement): string => {
   }
   return path.trim();
 };
-
-
-
 
 const openHighlighterDatabase = async (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {

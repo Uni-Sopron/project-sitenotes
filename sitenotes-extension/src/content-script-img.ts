@@ -120,6 +120,19 @@ const showContextMenu = (wrapper: HTMLElement, imageId: number) => {
     }, { once: true });
 };
 
+const savePageURLToChromeStorageImage = (url: string) => {
+    chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+        const pages = result.modifiedPages as string[];
+  
+        if (!pages.includes(url)) {
+            pages.push(url);
+  
+            chrome.storage.local.set({ modifiedPages: pages }, () => {
+                console.log(`Page URL saved to Chrome Storage: ${url}`);
+            });
+        }
+    });
+  };
 
 window.addEventListener('load', async () => {
     console.log('Page fully loaded. Initializing image loader...');
@@ -446,6 +459,7 @@ const saveImageData = async (storeName: string, data: any): Promise<void> => {
         const store = transaction.objectStore(storeName);
 
         store.put(data);
+        savePageURLToChromeStorageImage(window.location.href);
 
         return new Promise((resolve, reject) => {
             transaction.oncomplete = () => resolve();
@@ -550,6 +564,7 @@ const updateImageInDB = async (imageId: number, updatedData: any) => {
         if (data) {
             Object.assign(data, updatedData);
             store.put(data);
+            savePageURLToChromeStorageImage(window.location.href);
         } else {
             console.error('Image not found in DB for updating:', imageId);
         }

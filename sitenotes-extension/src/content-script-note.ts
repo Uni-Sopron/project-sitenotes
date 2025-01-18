@@ -27,6 +27,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // Keep the message channel open
 });
 
+const savePageURLToChromeStorageNotes = (url: string) => {
+    chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+        const pages = result.modifiedPages as string[];
+  
+        if (!pages.includes(url)) {
+            pages.push(url);
+  
+            chrome.storage.local.set({ modifiedPages: pages }, () => {
+                console.log(`Page URL saved to Chrome Storage: ${url}`);
+            });
+        }
+    });
+  };
+
 // INDEXEDDB MOVED HERE
 
 const saveNoteData = async (storeName: string, data: any): Promise<void> => {
@@ -36,6 +50,7 @@ const saveNoteData = async (storeName: string, data: any): Promise<void> => {
   
     // Add or update the data based on the ID
     store.put(data);
+    savePageURLToChromeStorageNotes(window.location.href);
     return new Promise((resolve, reject) => {
       transaction.oncomplete = () => resolve();
       transaction.onerror = (event) => reject((event.target as IDBRequest).error);
@@ -46,7 +61,7 @@ const getNoteData = async (key: string): Promise<any> => {
     const db = await openNoteDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readonly');
     const store = transaction.objectStore(STORE_NOTES);
-  
+    
     const request = store.get(key);
   
     return new Promise((resolve, reject) => {

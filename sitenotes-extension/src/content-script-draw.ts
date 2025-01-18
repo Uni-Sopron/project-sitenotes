@@ -294,6 +294,20 @@ const getPencilSize = () => {
   return activeSize;
 }
 
+const savePageURLToChromeStorageDraw = (url: string) => {
+  chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+      const pages = result.modifiedPages as string[];
+
+      if (!pages.includes(url)) {
+          pages.push(url);
+
+          chrome.storage.local.set({ modifiedPages: pages }, () => {
+              console.log(`Page URL saved to Chrome Storage: ${url}`);
+          });
+      }
+  });
+};
+
 /* INDEXEDDB */
 
 const openDrawingsDatabase = async (): Promise<IDBDatabase> => {
@@ -390,6 +404,7 @@ const saveDrawingData = async (storeName: string, data: any): Promise<void> => {
 
   // Add or update the data based on the ID
   store.put(data);
+  savePageURLToChromeStorageDraw(window.location.href);
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve();
     transaction.onerror = (event) => reject((event.target as IDBRequest).error);
