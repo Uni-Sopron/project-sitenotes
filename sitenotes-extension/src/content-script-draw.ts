@@ -33,6 +33,25 @@ const setupCanvas = async (): Promise<void> => {
 
 const clearCanvas = () => {
   ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+  // delete drawings database
+  openDrawingsDatabase()
+    .then((db) => {
+      const transaction = db.transaction('drawings', 'readwrite');
+      const store = transaction.objectStore('drawings');
+      store.delete(window.location.href);
+
+      transaction.oncomplete = () => {
+        console.log('Drawing deleted from IndexedDB.');
+        checkAndRemoveURLIfEmpty();
+      };
+
+      transaction.onerror = (event) => {
+        console.error('Error deleting drawing:', (event.target as IDBRequest).error);
+      };
+    })
+    .catch((error) => {
+      console.error('Error opening database:', error);
+    });
 };
 
 const addPencilEventListeners = () => {
@@ -411,12 +430,47 @@ const saveDrawingData = async (storeName: string, data: any): Promise<void> => {
   });
 };
 
-window.addEventListener('beforeunload', async () => {
-  await saveCanvasDrawing();
-});
 
 window.addEventListener('load', async () => {
   await setupCanvas();
+});
+
+const checkAndRemoveURLIfEmpty = async () => {
+  const db = await openDrawingsDatabase();
+  const storeNames = ['images', 'highlighter', 'drawings', 'notes'];
+  const currentURL = window.location.href;
+  
+  const allEmpty = await Promise.all(
+    storeNames.map(storeName => {
+      return new Promise<boolean>((resolve, reject) => {
+        const transaction = db.transaction(storeName, 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.get(currentURL);
+        request.onsuccess = () => {
+          resolve(!request.result);
+        };
+        request.onerror = () => reject(request.error);
+      });
+    })
+  ).then(results => results.every(isEmpty => isEmpty));
+
+  if (allEmpty) {
+    chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+      const pages = result.modifiedPages as string[];
+      const index = pages.indexOf(currentURL);
+      if (index !== -1) {
+        pages.splice(index, 1);
+        chrome.storage.local.set({ modifiedPages: pages }, () => {
+          console.log(`Page URL removed from Chrome Storage: ${currentURL}`);
+        });
+      }
+    });
+  }
+};
+
+window.addEventListener('beforeunload', checkAndRemoveURLIfEmpty);
+window.addEventListener('beforeunload', async () => {
+  await saveCanvasDrawing();
 });
 
   export { 
