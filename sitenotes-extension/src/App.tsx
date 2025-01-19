@@ -52,9 +52,6 @@ const App: React.FC = () => {
               <button onClick={addNote}><img src="/popup-icons/note-sticky-solid.svg" alt="Add Note" /></button>
             </td>
             <td>
-              <button><img src="/popup-icons/compress-solid.svg" alt="Iconizer" /></button>
-            </td>
-            <td>
               <button onClick={openManageNotesPage}><img src="/popup-icons/list-solid.svg" alt="All Notes" /></button>
             </td>
             <td>
@@ -71,10 +68,7 @@ const App: React.FC = () => {
               <p>Add Notes</p>
             </td>
             <td>
-              <p>Iconizer</p>
-            </td>
-            <td>
-              <p>All Notes</p>
+              <p>All Changes</p>
             </td>
             <td>
               <p>{toolsVisible ? "Hide Tools" : "Show Tools"}</p>
