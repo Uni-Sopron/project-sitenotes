@@ -116,18 +116,20 @@ const getNoteData = async (key: string): Promise<any> => {
 };
 
 
+const renderedNotes = new Set();
+
 const loadNotes = async () => {
     const url = window.location.href;
     const notes = await getAllNotesForURL(url);
 
-    // Render each note on the page, remove empty notes
     for (const note of notes) {
-        if (note.title.trim() === '' && note.text.trim() === '') {
-            // Delete empty notes from the database
-            await deleteNoteFromDB(note.id);
-        } else {
-            // Render non-empty notes on the page
-            addNoteToPage(note.id, note.title, note.text, note.color, note.position);
+        if (!renderedNotes.has(note.id)) {
+            renderedNotes.add(note.id); // Track rendered note IDs
+            if (note.title.trim() === '' && note.text.trim() === '') {
+                await deleteNoteFromDB(note.id);
+            } else {
+                addNoteToPage(note.id, note.title, note.text, note.color, note.position);
+            }
         }
     }
 };

@@ -6,10 +6,8 @@ A feladat egy böngésző extension fejlesztése, amiben a felhasználók kedvü
 ## Tartalomjegyzék
 
 1. [Eszközök](#eszközök)
-2. [Alapvető feltételek](#alapvető-feltételek)
-3. [Funkciók hozzáadása](#funkciók-hozzáadása)
-4. [Fejlesztőknek](#fejlesztőknek)
-4. [Megjegyzések](#megjegyzések)
+2. [Funkciók](#funkciók)
+3. [Fejlesztőknek](#fejlesztőknek)
 
 ## Eszközök
 
@@ -22,25 +20,22 @@ A feladat egy böngésző extension fejlesztése, amiben a felhasználók kedvü
 - Node.js & npm: Fejlesztési környezet és csomagkezeléshez.
 - Microsoft Teams: Fejlesztési periódusok ütemezéséhez és kommunikációhoz.
 
-## Alapvető feltételek
+## Funkciók
 
-- Az extension lokálisan működjön egy választott böngészőben
-- Az extensionök között jelenjen meg és legyen egy interaktív popup az alapvető funkciókkal
-- Legyen egy működő overlay, ami elmenti a cédulát a megfelelő oldalon és a popupból nyitjuk meg
-- Lementi, mely oldalon vannak cédulák
-- Lehetőleg törlés mellett keresést, illetve átnevezést is lehessen megadni neki, linkeket tudjon kezelni az extension oldalán (ez egy külön ablak, amit szintén a popupból nyitunk meg)
-- Lásd: Note Anywhere (Chrome Extension)
-- Amennyiben ezek teljesülnek, a verziószám átalakítható 1.0-ra.
+- Az extension lokálisan működik a Google Chrome böngészőjében
+- Az extensionök között jelenik meg és van egy interaktív popup az alapvető funkciókkal
+- Működő overlay, ami elmenti a cédulát, rajzot, kiemelést, képbeillesztést a megfelelő oldalon megfelelő paraméterekkel és a popupból nyitjuk meg toolbarként (cédulát Add Note-tal)
+- Lementi, mely oldalon vannak cédulák és egyéb változtatások
+- Törölni lehet tartalmat az oldalon, szerkesztéseket szintén ment, linkeket tudjon kezelni az extension oldalán (ez egy külön ablak, amit szintén a popupból nyitunk meg)
 
-## Funkciók hozzáadása
-
-- 1.0 és afeletti verziónak tekinthetőek a következő változtatások:
-- A jegyzetekhez tartozzon módosítás dátuma
-- Pin: a monitor arányéhoz mérten kitűzve legyen, akármerre görgetünk
-- Show/Hide: lehessen eltűntetni és megjeleníteni egyenként vagy összeset egyszerre
-- a cédulán belül és akár kívül is lehessen rajzolni (toolbar)
+- Anchor: a monitor arányához mérten kitűzve legyen tartalom, akármerre görgetünk
+- Show/Hide: lehessen eltűntetni és megjeleníteni toolbart
+- cédulákat txt-ként le lehet menteni és visszatölteni, lehet színt változtatni rajtuk, ikonizálni, törölni, belső szövegbuborék méretét változtatni
+- szabadon lehet rajzolni, szöveget kiemelni és képet illeszteni az oldalra
+- rajznál radírral lehet törölni vagy teljesen törölni is, színt lehet választani
+- kiemelőnél szintén (kivétel teljes törlés), csak az van kiemelve, amit kiemeltünk (hibás: más betűtípusú szöveg egy kiemelésen belül nem fog megjelenítődni újratöltéskor)
+- képnél lehet forgatni 90 fokban, megfordítani a képet, kép arányai szerint növelni vagy csökkenteni a méretet
 - szöveget bárhol lehessen kiemelni az oldalon
-    - ha a szöveg változna, akkor legyen róla figyelmeztetés, lehessen megtekinteni az előző változatot és azt elolvasni, netán kidobni, ha már nincs szükségünk rá
 - lényegében egy komplett toolbar fejlesztése
     - rajz eszköz
     - kiemelés és dőlt betűk
@@ -48,6 +43,11 @@ A feladat egy böngésző extension fejlesztése, amiben a felhasználók kedvü
     - kép elhelyezése
 - monitor, felbontáshoz igazodjanak a szerkesztések is
 - exportálás és importálás lehetősége
+
+Hiányzik:
+- dinamikus tartalom szerinti figyelmeztetések, annak megfelelő kezelése
+- linkek listázásánál törlés és összes törlése (tartalmukkal együtt)
+- dátum nem szerepel sehol sem
 
 ## Fejlesztőknek
 
