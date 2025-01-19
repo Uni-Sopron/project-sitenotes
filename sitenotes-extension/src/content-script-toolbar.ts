@@ -15,6 +15,9 @@ let deleteHighlighterButton: HTMLButtonElement | null = null;
 let colorBox: HTMLSpanElement | null = null;
 let isVertical = false;
 let isMovable = false;
+let Color1 = '#6969C0';
+let Color2 = '#BF6969';
+let Color3 = '#69BF69';
 
 const startProcess = (buttonId: string) => {
 
@@ -129,6 +132,17 @@ const setColorIcon = (buttonId: string, color: string) => {
   const button = toolbar?.querySelector(`.${buttonId}`) as HTMLImageElement;
   if (button) {
     button.style.backgroundColor = color;
+  }
+  switch (buttonId) {
+    case 'color-button-1':
+      Color1 = color;
+      break;
+    case 'color-button-2':
+      Color2 = color;
+      break;
+    case 'color-button-3':
+      Color3 = color;
+      break;
   }
 
 }
@@ -295,21 +309,21 @@ const createToolbar = () => {
 
       // TODO ocsmány és ronda, de most így oldjuk meg hogy legyen első szín, később módosítjuk
       if (className === 'color-button-1' && button.style.backgroundColor === '') {
-        button.style.backgroundColor = '#6969C0';
+        button.style.backgroundColor = Color1;
       }
       if (className === 'color-button-2' && button.style.backgroundColor === '') {
-        button.style.backgroundColor = '#BF6969';
+        button.style.backgroundColor = Color2;
       }
       if (className === 'color-button-3' && button.style.backgroundColor === '') {
-        button.style.backgroundColor = '#69BF69';
+        button.style.backgroundColor = Color3;
       }
 
     });
 
     if (activeColorButton === null) {
       activeColorButton = 'color-button-1';
-      updateButtonOpacity(activeColorButton);
     }
+    updateButtonOpacity(activeColorButton);
   };
   updateButtonsConfig();
   shadowRoot.appendChild(toolbar);
