@@ -118,25 +118,31 @@ const getNoteData = async (key: string): Promise<any> => {
 
 const renderedNotes = new Set();
 
+// Adjust loadNotes for correct position
 const loadNotes = async () => {
     const url = window.location.href;
     const notes = await getAllNotesForURL(url);
 
     for (const note of notes) {
         if (!renderedNotes.has(note.id)) {
-            renderedNotes.add(note.id); // Track rendered note IDs
-            if (note.title.trim() === '' && note.text.trim() === '') {
-                await deleteNoteFromDB(note.id);
+            renderedNotes.add(note.id);
+            if (note.title.trim() || note.text.trim()) {
+                addNoteToPage(
+                    note.id,
+                    note.title,
+                    note.text,
+                    note.color,
+                    note.position,
+                    note.isAnchored
+                );
             } else {
-                addNoteToPage(note.id, note.title, note.text, note.color, note.position);
+                await deleteNoteFromDB(note.id);
             }
         }
     }
 };
-
 // Retrieve all notes for the current URL
 async function getAllNotesForURL(url: string) {
-    console.log('Loading notes for URL:', url);
     const db = await openNoteDatabase();
     const transaction = db.transaction(STORE_NOTES, 'readonly');
     const store = transaction.objectStore(STORE_NOTES);
@@ -148,6 +154,7 @@ async function getAllNotesForURL(url: string) {
             const cursor = event.target.result;
             if (cursor) {
                 const note = cursor.value;
+                // Check if note URL matches the current URL
                 if (note.url === url) {
                     notes.push(note);
                 }
@@ -157,6 +164,7 @@ async function getAllNotesForURL(url: string) {
             }
         };
         request.onerror = () => {
+            console.error('Failed to fetch notes');
             reject(new Error('Error fetching notes for URL'));
         };
     });
@@ -167,17 +175,19 @@ function addNoteToPage(
     title: string = '',
     text: string = '',
     color: string = 'lightyellow',
-    position: { x: number; y: number } = { x: 100, y: 100 }
+    position: { x: number; y: number } = { x: 100, y: 100 },
+    isAnchored: boolean = false
 ) {
     const shadowHost = document.createElement('div');
     shadowHost.id = `shadowHost-${noteId || Date.now()}`;
     document.body.appendChild(shadowHost);
-    
+
     const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
     const noteDiv = document.createElement('div');
     noteDiv.id = `noteDiv-${noteId || Date.now()}`;
     noteDiv.className = 'notes';
     noteDiv.style.backgroundColor = color;
+    noteDiv.style.position = isAnchored ? 'absolute' : 'fixed';
     noteDiv.style.left = `${position.x}px`;
     noteDiv.style.top = `${position.y}px`;
     shadowRoot.appendChild(noteDiv);
@@ -211,8 +221,6 @@ function addNoteToPage(
     anchorButton.style.opacity = '0.5';
     buttonDiv.appendChild(anchorButton);
     
-    let isAnchored = false;
-
     // Add color button
     const colorButton = document.createElement('button');
     colorButton.className = 'Buttons';
@@ -274,86 +282,69 @@ function addNoteToPage(
     titleArea.addEventListener('input', () => {
         const currentColor = noteDiv.style.backgroundColor;
         const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
-        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor);
+        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor, isAnchored);
     });
     
     textArea.addEventListener('input', () => {
         const currentColor = noteDiv.style.backgroundColor;
         const currentPosition = { x: noteDiv.offsetLeft, y: noteDiv.offsetTop };
-        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor);
+        saveNote(titleArea, textArea, noteDiv, currentPosition, currentColor, isAnchored);
     });
     
-    // Make the div draggable
+    // Add draggable and position saving functionality
     let isDragging = false;
-    noteDiv.onmousedown = function(event) {
-        const target = event.target as HTMLElement;
-       
-        if (isAnchored || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-    
+    noteDiv.onmousedown = function (event) {
+        if (isAnchored) return;
+
         isDragging = true;
-    
-        // Use clientX/Y instead of getting getBoundingClientRect when unanchored
-        const shiftX = event.clientX - (isAnchored ? noteDiv.getBoundingClientRect().left : parseFloat(noteDiv.style.left));
-        const shiftY = event.clientY - (isAnchored ? noteDiv.getBoundingClientRect().top : parseFloat(noteDiv.style.top));
-       
+        const shiftX = event.clientX - parseFloat(noteDiv.style.left);
+        const shiftY = event.clientY - parseFloat(noteDiv.style.top);
+
         function moveAt(clientX: number, clientY: number) {
-            const rect = noteDiv.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-       
-            let newX = clientX - shiftX;
-            let newY = clientY - shiftY;
-       
-            // Check if it goes out of the viewport
-            newX = Math.max(0, Math.min(newX, viewportWidth - rect.width));
-            newY = Math.max(0, Math.min(newY, viewportHeight - rect.height));
-    
-            noteDiv.style.left = `${newX}px`;
-            noteDiv.style.top = `${newY}px`;
-    
-            // Save note data with new position
-            if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
-                saveNote(titleArea, textArea, noteDiv, { x: newX, y: newY }, noteDiv.style.backgroundColor);
+            const newX = clientX - shiftX;
+            const newY = clientY - shiftY;
+            noteDiv.style.left = `${Math.max(0, newX)}px`;
+            noteDiv.style.top = `${Math.max(0, newY)}px`;
+
+            if (title || text) {
+                const updatedPosition = { x: newX, y: newY };
+                saveNote(titleArea, textArea, noteDiv, updatedPosition, color, isAnchored);
             }
         }
-       
+
         function onMouseMove(event: MouseEvent) {
-            if (isDragging && !isAnchored) {
-                // Use clientX/Y instead of pageX/Y when unanchored
+            if (isDragging) {
                 moveAt(event.clientX, event.clientY);
             }
         }
-    
+
         document.addEventListener('mousemove', onMouseMove);
-       
-        document.addEventListener('mouseup', function onMouseUp() {
+        document.addEventListener('mouseup', () => {
             isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
         });
     };
     
-    noteDiv.ondragstart = function() {
-        return false;
-    }
-    
-    // Toggle anchoring on button click
-    anchorButton.onclick = function() {
+    // Anchor toggle button
+    anchorButton.onclick = function () {
         isAnchored = !isAnchored;
         anchorButton.style.opacity = isAnchored ? '1' : '0.5';
-        const rect = noteDiv.getBoundingClientRect(); // Get the current position of the note
-        if (isAnchored) {
-            // Switch to absolute and adjust for scroll position
-            noteDiv.style.position = 'absolute';
-            noteDiv.style.left = `${rect.left + window.scrollX}px`;
-            noteDiv.style.top = `${rect.top + window.scrollY}px`;
-        } else {
-            // Switch to fixed, maintain its current position on the screen
-            noteDiv.style.position = 'fixed';
-            noteDiv.style.left = `${rect.left}px`;
-            noteDiv.style.top = `${rect.top}px`;
-        }
-    };
+
+        const rect = noteDiv.getBoundingClientRect();
+        noteDiv.style.position = isAnchored ? 'absolute' : 'fixed';
+        noteDiv.style.left = isAnchored ? `${rect.left + window.scrollX}px` : `${rect.left}px`;
+        noteDiv.style.top = isAnchored ? `${rect.top + window.scrollY}px` : `${rect.top}px`;
+
+        saveNote(
+            titleArea,
+            textArea,
+            noteDiv,
+            { x: noteDiv.offsetLeft, y: noteDiv.offsetTop },
+            noteDiv.style.backgroundColor,
+            isAnchored
+        );
+};
+
     
     // Change the color of the note div
     colorButton.onclick = function() {
@@ -424,8 +415,8 @@ function addNoteToPage(
         closedIcon.className = 'closed-note-icon';
         closedIcon.style.backgroundColor = noteDiv.style.backgroundColor;
         closedIcon.style.position = 'absolute';
-        closedIcon.style.left = `${position.x}px`;
-        closedIcon.style.top = `${position.y}px`;
+        closedIcon.style.left = `${position.x+ window.scrollX}px`;
+        closedIcon.style.top = `${position.y + window.scrollY}px`;
         closedIcon.style.zIndex = '9999'; // Make sure it's on top of other elements
         closedIcon.textContent = '📝'; // Icon representing the note
         document.body.appendChild(closedIcon);
@@ -434,11 +425,14 @@ function addNoteToPage(
         shadowHost.remove();
     
         // Save "closed" state and position in the database
+        const rect = noteDiv.getBoundingClientRect();
+        const currentPosition = { x: rect.left, y: rect.top };
+        
         updateNoteInDB(noteId, {
             title: titleArea.value,
             text: textArea.value,
             color: noteDiv.style.backgroundColor,
-            position: position,
+            position: currentPosition,
             closed: true, // Mark note as closed
         });
     
@@ -475,7 +469,7 @@ function addNoteToPage(
 
         // Save note data including the new color
         if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
-            saveNote(titleArea, textArea, noteDiv, noteDiv.getBoundingClientRect(), noteDiv.style.backgroundColor);
+            saveNote(titleArea, textArea, noteDiv, noteDiv.getBoundingClientRect(), noteDiv.style.backgroundColor, isAnchored);
         };
     }
 
@@ -502,22 +496,24 @@ async function saveNote(
     textArea: HTMLTextAreaElement, 
     noteDiv: HTMLElement, 
     position: { x: number; y: number }, 
-    color: string
+    color: string,
+    isAnchored: boolean,
 ) {
     // Get the note data from the title, text, color, and position
     const noteData = {
-        id: parseInt(noteDiv.id.split('-')[1]), // Extract the ID from noteDiv's ID
+        id: parseInt(noteDiv.id.split('-')[1], 10),
         title: titleArea.value,
         text: textArea.value,
-        color: color, // Use the passed color
-        position: position, // Use the passed position
+        color: color,
+        position: position,
+        isAnchored: isAnchored, // Új állapot
     };
-
+    
     const url = window.location.href;
     await createOrUpdateNote(url, noteData);
 }
 
-async function createOrUpdateNote(url: string, noteData: { id: number; title: string; text: string; color: string; position: { x: number; y: number }; }) {
+async function createOrUpdateNote(url: string, noteData: { id: number; title: string; text: string; color: string; position: { x: number; y: number }; isAnchored: boolean }) {
     const note = {
         id: noteData.id || Date.now(),
         title: noteData.title,
@@ -529,6 +525,7 @@ async function createOrUpdateNote(url: string, noteData: { id: number; title: st
             modified: new Date().toISOString(),
         },
         url: url,
+        isAnchored: noteData.isAnchored || false,
     };
 
     await saveNoteData(STORE_NOTES, note);
