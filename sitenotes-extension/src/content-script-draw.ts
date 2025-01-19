@@ -2,6 +2,7 @@ let isPencilModeActive = false; // Ceruza mód állapota
 let isDrawing = false;
 let isEraserModeActive = false; // Radír mód állapota
 let isErasing = false;
+let wasDrawnOnCanvas = false; // A rajzolás állapota
 
 let lastX: number | null = null;
 let lastY: number | null = null;
@@ -33,6 +34,7 @@ const setupCanvas = async (): Promise<void> => {
 
 const clearCanvas = () => {
   ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+  wasDrawnOnCanvas = false;
   // delete drawings database
   openDrawingsDatabase()
     .then((db) => {
@@ -248,6 +250,7 @@ const activatePencilMode = () => {
 const draw = (e: MouseEvent | TouchEvent) => {
   e.preventDefault(); // Az alapértelmezett viselkedés letiltása (pl. görgetés)
   if (!isDrawing || !ctx) return; // Ha nem rajzolunk, lépjünk ki
+  wasDrawnOnCanvas = true; // A rajzolás állapotának frissítése
 
       let offsetX = 0;
       let offsetY = 0;
@@ -314,16 +317,17 @@ const getPencilSize = () => {
 }
 
 const savePageURLToChromeStorageDraw = (url: string) => {
+
   chrome.storage.local.get({ modifiedPages: [] }, (result) => {
-      const pages = result.modifiedPages as string[];
+    const pages = result.modifiedPages as string[];
 
-      if (!pages.includes(url)) {
-          pages.push(url);
+    if (!pages.includes(url)) {
+      pages.push(url);
 
-          chrome.storage.local.set({ modifiedPages: pages }, () => {
-              console.log(`Page URL saved to Chrome Storage: ${url}`);
-          });
-      }
+      chrome.storage.local.set({ modifiedPages: pages }, () => {
+        console.log(`Page URL saved to Chrome Storage: ${url}`);
+      });
+    }
   });
 };
 
@@ -409,14 +413,17 @@ const saveCanvasDrawing = async (): Promise<void> => {
   };
 
   try {
-      await saveDrawingData('drawings', drawingData);
+      await saveDrawingData('drawings', drawingData, wasDrawnOnCanvas);
       console.log('Rajz mentve!');
   } catch (error) {
       console.error('Rajz mentése sikertelen:', error);
   }
 };
 
-const saveDrawingData = async (storeName: string, data: any): Promise<void> => {
+const saveDrawingData = async (storeName: string, data: any, wasDrawnOnCanvas: boolean): Promise<void> => {
+  if (!wasDrawnOnCanvas) {
+    return;
+  }
   const db = await openDrawingsDatabase();
   const transaction = db.transaction(storeName, 'readwrite');
   const store = transaction.objectStore(storeName);
@@ -437,7 +444,7 @@ window.addEventListener('load', async () => {
 
 const checkAndRemoveURLIfEmpty = async () => {
   const db = await openDrawingsDatabase();
-  const storeNames = ['images', 'highlighter', 'drawings', 'notes'];
+  const storeNames = ['images', 'highlighter', 'notes', 'drawings'];
   const currentURL = window.location.href;
   
   const allEmpty = await Promise.all(
