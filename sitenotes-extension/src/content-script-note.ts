@@ -285,43 +285,45 @@ function addNoteToPage(
     let isDragging = false;
     noteDiv.onmousedown = function(event) {
         const target = event.target as HTMLElement;
-    
+       
         if (isAnchored || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-
-        isDragging = true;
-
-        const shiftX = event.clientX - noteDiv.getBoundingClientRect().left;
-        const shiftY = event.clientY - noteDiv.getBoundingClientRect().top;
     
-        function moveAt(pageX: number, pageY: number) {
+        isDragging = true;
+    
+        // Use clientX/Y instead of getting getBoundingClientRect when unanchored
+        const shiftX = event.clientX - (isAnchored ? noteDiv.getBoundingClientRect().left : parseFloat(noteDiv.style.left));
+        const shiftY = event.clientY - (isAnchored ? noteDiv.getBoundingClientRect().top : parseFloat(noteDiv.style.top));
+       
+        function moveAt(clientX: number, clientY: number) {
             const rect = noteDiv.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-    
-            let newX = pageX - shiftX;
-            let newY = pageY - shiftY;
-    
+       
+            let newX = clientX - shiftX;
+            let newY = clientY - shiftY;
+       
             // Check if it goes out of the viewport
             newX = Math.max(0, Math.min(newX, viewportWidth - rect.width));
             newY = Math.max(0, Math.min(newY, viewportHeight - rect.height));
-
+    
             noteDiv.style.left = `${newX}px`;
             noteDiv.style.top = `${newY}px`;
-
-            // Save note data with new position as it's being moved only if there is text inside title or textarea
+    
+            // Save note data with new position
             if (titleArea.value.trim() !== '' || textArea.value.trim() !== '') {
                 saveNote(titleArea, textArea, noteDiv, { x: newX, y: newY }, noteDiv.style.backgroundColor);
             }
         }
-    
+       
         function onMouseMove(event: MouseEvent) {
             if (isDragging && !isAnchored) {
-                moveAt(event.pageX, event.pageY);
+                // Use clientX/Y instead of pageX/Y when unanchored
+                moveAt(event.clientX, event.clientY);
             }
         }
-
-        document.addEventListener('mousemove', onMouseMove);
     
+        document.addEventListener('mousemove', onMouseMove);
+       
         document.addEventListener('mouseup', function onMouseUp() {
             isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
