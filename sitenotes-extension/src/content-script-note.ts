@@ -301,11 +301,20 @@ function addNoteToPage(
         const shiftY = event.clientY - parseFloat(noteDiv.style.top);
 
         function moveAt(clientX: number, clientY: number) {
-            const newX = clientX - shiftX;
-            const newY = clientY - shiftY;
-            noteDiv.style.left = `${Math.max(0, newX)}px`;
-            noteDiv.style.top = `${Math.max(0, newY)}px`;
-
+            const rect = noteDiv.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+       
+            let newX = clientX - shiftX;
+            let newY = clientY - shiftY;
+       
+            // Check if it goes out of the viewport
+            newX = Math.max(0, Math.min(newX, viewportWidth - rect.width));
+            newY = Math.max(0, Math.min(newY, viewportHeight - rect.height));
+    
+            noteDiv.style.left = `${newX}px`;
+            noteDiv.style.top = `${newY}px`;
+            
             if (title || text) {
                 const updatedPosition = { x: newX, y: newY };
                 saveNote(titleArea, textArea, noteDiv, updatedPosition, color, isAnchored);
