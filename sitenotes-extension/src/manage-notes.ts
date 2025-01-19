@@ -84,7 +84,7 @@ const updateSummarySection = async () => {
         link.href = url;
         link.target = '_blank';
         link.textContent = shortURL;
-        link.style.color = 'green';
+        link.style.color = '#46C7C7';
         link.style.fontSize = '1.1em';
 
         listItem.appendChild(link);
