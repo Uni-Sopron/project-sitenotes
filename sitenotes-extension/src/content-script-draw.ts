@@ -44,7 +44,7 @@ const clearCanvas = () => {
 
       transaction.oncomplete = () => {
         console.log('Drawing deleted from IndexedDB.');
-        checkAndRemoveURLIfEmpty();
+        checkAndUpdateURLInStorage();
       };
 
       transaction.onerror = (event) => {
@@ -442,40 +442,78 @@ window.addEventListener('load', async () => {
   await setupCanvas();
 });
 
-const checkAndRemoveURLIfEmpty = async () => {
-  const db = await openDrawingsDatabase();
-  const storeNames = ['images', 'highlighter', 'notes', 'drawings'];
-  const currentURL = window.location.href;
-  
-  const allEmpty = await Promise.all(
-    storeNames.map(storeName => {
-      return new Promise<boolean>((resolve, reject) => {
-        const transaction = db.transaction(storeName, 'readonly');
-        const store = transaction.objectStore(storeName);
-        const request = store.get(currentURL);
-        request.onsuccess = () => {
-          resolve(!request.result);
-        };
-        request.onerror = () => reject(request.error);
-      });
-    })
-  ).then(results => results.every(isEmpty => isEmpty));
+const checkAndUpdateURLInStorage = async () => {
+  try {
+    // Open the IndexedDB database
+    const dbRequest = indexedDB.open('siteNotesDB');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      dbRequest.onsuccess = () => resolve(dbRequest.result as IDBDatabase);
+      dbRequest.onerror = () => reject(dbRequest.error);
+    });
 
-  if (allEmpty) {
-    chrome.storage.local.get({ modifiedPages: [] }, (result) => {
-      const pages = result.modifiedPages as string[];
-      const index = pages.indexOf(currentURL);
-      if (index !== -1) {
-        pages.splice(index, 1);
-        chrome.storage.local.set({ modifiedPages: pages }, () => {
-          console.log(`Page URL removed from Chrome Storage: ${currentURL}`);
+    const storeNames = ['images', 'notes', 'highlighter', 'drawings'];
+    const currentURL = window.location.href;
+
+    // Check if all tables are empty
+    const allEmpty = await Promise.all(
+      storeNames.map(storeName => {
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction(storeName, 'readonly');
+          const store = transaction.objectStore(storeName);
+          const request = store.openCursor();  // Changed to openCursor to check all records
+          
+          request.onsuccess = (event) => {
+            let cursor: IDBCursorWithValue | null = null;
+            if (event.target) {
+                cursor = (event.target as IDBRequest).result;
+            } else {
+                console.error('Event target is null.');
+            }
+            if (cursor) {
+              // Record exists
+              resolve(false);
+            } else {
+              // No records found
+              resolve(true);
+            }
+          };
+
+          request.onerror = () => reject(request.error);
         });
+      })
+    ).then(results => results.every(isEmpty => isEmpty));
+
+    // Update Chrome API storage based on emptiness
+    chrome.storage.local.get({ modifiedPages: [] }, (result) => {
+      const pages = result.modifiedPages || [];
+      const urlIndex = pages.indexOf(currentURL);
+
+      if (allEmpty) {
+        // Remove the URL if it's in the storage and all tables are empty
+        if (urlIndex !== -1) {
+          pages.splice(urlIndex, 1);
+          chrome.storage.local.set({ modifiedPages: pages }, () => {
+            console.log(`URL removed from storage: ${currentURL}`);
+          });
+        }
+      } else {
+        // Ensure the URL is in the storage if tables are not empty
+        if (urlIndex === -1) {
+          pages.push(currentURL);
+          chrome.storage.local.set({ modifiedPages: pages }, () => {
+            console.log(`URL added/updated in storage: ${currentURL}`);
+          });
+        }
       }
     });
+
+  } catch (error) {
+    console.error('Error in checkAndUpdateURLInStorage:', error);
   }
 };
 
-window.addEventListener('beforeunload', checkAndRemoveURLIfEmpty);
+// Trigger the function when necessary
+window.addEventListener('beforeunload', checkAndUpdateURLInStorage);
 window.addEventListener('beforeunload', async () => {
   await saveCanvasDrawing();
 });
