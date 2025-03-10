@@ -1,7 +1,8 @@
 SITENOTES EXTENSION
 --
 
-Figyelem: a leírás a projekt befejezése előtt készült.
+Figyelem: a leírás a projekt befejezése előtt készült.  
+A prezentáció megtekinthető [ide kattintva](https://docs.google.com/presentation/d/1X2qq-6WsJ5_g-hByok-DN1udqtJfx94h/edit?usp=sharing&ouid=101010152620225139031&rtpof=true&sd=true), ahol a végső projekt látszódik.
 A feladat egy böngésző extension fejlesztése, amiben a felhasználók kedvük szerint tudnak kiválasztott oldalakon jegyzetet hagyni maguknak, illetve az oldalon is szerkesztéseket (kiemelés, rajzolás) végrehajtani.
 
 ## Tartalomjegyzék
