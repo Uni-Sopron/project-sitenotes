@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "SiteNotes",
+  "version": "0.2.4",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icons/placeholder.png"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "assets/background.js"
+  },
+  "web_accessible_resources": [
+    {
+    "resources": [
+      "manage-notes.html", 
+      "assets/contentScriptToolbar.js", 
+      "assets/contentScriptHighlighter.js", 
+      "assets/contentScriptDraw.js",
+      "assets/contentScriptIMG.js",
+      "assets/contentScriptNote.js",
+      "note.css", 
+      "note-icons/*",
+      "toolbar-icons/*", 
+      "toolbar.css" ],
+    "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+    "type": "module",
+    "matches": ["<all_urls>"],
+    "js": ["assets/contentScriptToolbar.js",
+         "assets/contentScriptHighlighter.js",
+         "assets/contentScriptDraw.js",
+         "assets/contentScriptIMG.js",
+         "assets/contentScriptNote.js",
+         "assets/manageNotes.js"]
+    }
+  ]
+  }
