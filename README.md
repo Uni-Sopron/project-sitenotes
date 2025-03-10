@@ -1,6 +1,7 @@
 SITENOTES EXTENSION
 --
 
+Figyelem: a leírás a projekt befejezése előtt készült.
 A feladat egy böngésző extension fejlesztése, amiben a felhasználók kedvük szerint tudnak kiválasztott oldalakon jegyzetet hagyni maguknak, illetve az oldalon is szerkesztéseket (kiemelés, rajzolás) végrehajtani.
 
 ## Tartalomjegyzék
